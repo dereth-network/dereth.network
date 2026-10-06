@@ -1,0 +1,6 @@
+{
+  "sshTarget": "you@your-vm",
+  "remoteDirectory": "/home/you/dereth.network",
+  "url": "http://your-vm:3000",
+  "port": 3000
+}
