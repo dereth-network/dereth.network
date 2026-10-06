@@ -3,47 +3,284 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0b0c0f" />
+    <meta name="theme-color" content="#0c0a10" />
     <meta
       name="description"
-      content="Dereth Network — a shared home and server registry for Asheron's Call. The public site is being built."
+      content="Dereth is an open Asheron's Call client for Windows, macOS, Linux and the browser, with Empyrean, a Rust port of ACE, and a launcher for the community's worlds."
     />
-    <link rel="icon" href="/mark.svg" type="image/svg+xml" />
-    <link rel="preload" href="/cinzel.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="icon" href="/media/art/dereth-icon.png" type="image/png" />
+    <link rel="preload" href="/media/fonts/Cinzel-var.ttf" as="font" type="font/ttf" crossorigin />
     <link rel="stylesheet" href="/src/style.css" />
+    <script type="module" src="/src/main.ts"></script>
     <title>Dereth Network</title>
   </head>
   <body>
-    <main class="shell">
-      <div class="stage">
-        <img class="vista" src="/vista.jpg" alt="" />
-        <div class="wash wash-top"></div>
-        <div class="wash wash-bottom"></div>
-        <div class="curtain"></div>
+    <div class="vista" aria-hidden="true"><img src="/media/art/obsidian-bridge.webp" alt="" /></div>
 
-        <div class="frame">
-          <span class="ornament tl"></span>
-          <span class="ornament tr"></span>
-          <span class="ornament bl"></span>
-          <span class="ornament br"></span>
-        </div>
+    <div class="page">
+      <header class="top">
+        <a class="lockup" href="./" aria-label="Dereth Network">
+          <img src="/media/art/emblem.png" alt="" width="60" height="60" />
+          <span class="word">DERETH<br />NETWORK</span>
+        </a>
+        <nav class="rail" aria-label="Site">
+          <a href="https://play.dereth.network/?server=https://retail.dereth.network/status"
+            >Play</a
+          >
+          <a href="https://github.com/dereth-network/dereth/releases">Download</a>
+          <a href="https://github.com/dereth-network/dereth">Source</a>
+        </nav>
+      </header>
 
-        <header class="lockup">
-          <img class="star" src="/star.png" alt="" />
-          <h1 class="wordmark"><span>Dereth</span><span>Network</span></h1>
-        </header>
-
-        <div class="plate-row">
-          <p class="plate">Coming Soon</p>
-        </div>
-
-        <footer class="notice">
-          <p>
-            Asheron&rsquo;s Call and all related names, marks, and artwork are the property of their
-            respective owners. This is an unaffiliated, non-commercial fan project.
+      <section class="panel intro" aria-labelledby="h-intro">
+        <div>
+          <h1 id="h-intro">
+            Introducing Dereth<span>a modern, open-source Asheron's Call client</span>
+          </h1>
+          <p class="note">
+            You'll need the <a href="https://www.accpp.net/manual-installation">game data files</a>;
+            none are included.<br />Classic
+            <a href="https://search.accpp.net/#f=208680">cell.dat</a> and
+            <a href="https://search.accpp.net/#f=209258">portal.dat</a> required for
+            Infiltration-era UI and visuals.
           </p>
-        </footer>
+        </div>
+        <div class="actions">
+          <div class="plate">
+            <a
+              class="play"
+              href="https://play.dereth.network/?server=https://retail.dereth.network/status"
+              >PLAY IN BROWSER</a
+            >
+            <p class="also">
+              (or play the February 2005 world,
+              <a
+                href="https://play.dereth.network/?server=https://infiltration.dereth.network/status"
+                >Infiltration</a
+              >)
+            </p>
+          </div>
+          <div class="row">
+            <a class="btn" href="https://github.com/dereth-network/dereth/releases">Download</a>
+            <a class="btn" href="https://github.com/dereth-network/dereth">Source</a>
+          </div>
+          <p class="reach">
+            The browser connects to Empyrean worlds with WebSocket on. Any other server needs a
+            <a href="https://github.com/dereth-network/dereth/blob/main/tools/web-relay/README.md"
+              >local web relay</a
+            >.
+          </p>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-dereth">
+        <h2 id="h-dereth" class="named">
+          <img src="/media/art/dereth-icon.png" alt="" width="48" height="48" />Dereth
+        </h2>
+        <div class="compare native">
+          <div class="slider" data-slider data-ratio="charselect">
+            <img
+              src="/media/charselect-modern.webp"
+              alt="The end-of-retail character screen"
+              width="804"
+              height="647"
+              loading="lazy"
+            />
+            <img
+              class="over"
+              src="/media/charselect-classic.webp"
+              alt="The classic character screen with the 1999 cauldron"
+              width="804"
+              height="647"
+              loading="lazy"
+            />
+            <div class="handle" aria-hidden="true"></div>
+            <span class="tag l">END OF RETAIL</span>
+            <span class="tag r">CLASSIC</span>
+          </div>
+          <input
+            id="cut-charselect"
+            class="cut"
+            type="range"
+            min="0"
+            max="100"
+            value="50"
+            aria-label="Compare end of retail and classic"
+          />
+        </div>
+        <ul class="bullets">
+          <li>Runs natively on Windows, macOS and Linux, and in a browser.</li>
+          <li>
+            Supports the modern, end-of-retail interface and the classic, pre-Throne of Destiny one.
+            Fidelity was only compromised where needed to support end-of-retail features (the
+            journal, cloak and trinket slots, and so on).
+          </li>
+          <li>
+            Reads the data files from 1999 through 2017, and plays worlds built on the February 2005
+            (Infiltration) data without massaging classic data files into modern ones.
+          </li>
+          <li>Supports classic terrain, sky and object models.</li>
+          <li>
+            A launcher with the community server list, and support for adding your own servers.
+          </li>
+        </ul>
+      </section>
+
+      <section class="panel" aria-labelledby="h-emp">
+        <h2 id="h-emp" class="named">
+          <img src="/media/art/empyrean-icon.png" alt="" width="48" height="48" />Empyrean
+        </h2>
+        <p>
+          Empyrean started as a straight port of ACE, so the client and server would share an exact
+          view of the world: the simulation state, the data models and so on. It has diverged from
+          ACE where needed, toward a server that can play any era of Asheron's Call from 1999 to
+          2017, and toward a client that isn't limited to what retail did.
+        </p>
+        <p>Where it has diverged so far:</p>
+        <ul class="bullets">
+          <li>
+            <b>Eras.</b> An <code>[era]</code> setting picks which era a world plays (end of retail
+            by default). Infiltration uses ClassicACE's rules, and a world's systems (housing,
+            luminance, aetheria, spell research and so on) can be turned off to match its era. Spell
+            research with the original Create Spell interface, for example, needed both a custom
+            client and changes in Empyrean.
+          </li>
+          <li>
+            <b>Data overlays.</b> A world can serve its own custom content in the data files, and
+            Dereth keeps it per world instead of patching your install.
+          </li>
+          <li>
+            <b>A status ping.</b> The launcher can ask a world for its era, player count and version
+            without logging in.
+          </li>
+          <li>
+            <b>Announcements.</b> The classic interface brings back the large pre-Throne of Destiny
+            announcements box. For parity it's in the modern interface too, and an Empyrean server
+            can fill it.
+          </li>
+        </ul>
+      </section>
+
+      <section class="panel" aria-labelledby="h-look">
+        <h2 id="h-look">Screenshots</h2>
+        <div class="shots">
+          <div class="compare">
+            <div class="slider" data-slider data-ratio="wide">
+              <img
+                src="/media/holtburg-modern.webp"
+                alt="Holtburg's portal in the end-of-retail interface and data"
+                width="1924"
+                height="1127"
+                loading="lazy"
+              />
+              <img
+                class="over"
+                src="/media/holtburg-classic.webp"
+                alt="The same view in the classic interface and the February 2005 data"
+                width="1924"
+                height="1127"
+                loading="lazy"
+              />
+              <div class="handle" aria-hidden="true"></div>
+              <span class="tag l">END OF RETAIL</span>
+              <span class="tag r">CLASSIC</span>
+            </div>
+            <input
+              id="cut-holtburg"
+              class="cut"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              aria-label="Compare end of retail and classic"
+            />
+          </div>
+          <div class="compare">
+            <div class="slider" data-slider data-ratio="wide">
+              <img
+                src="/media/skills-modern.webp"
+                alt="Holtburg with the skills panel open, end of retail"
+                width="1924"
+                height="1127"
+                loading="lazy"
+              />
+              <img
+                class="over"
+                src="/media/skills-classic.webp"
+                alt="The same moment in the classic interface"
+                width="1924"
+                height="1127"
+                loading="lazy"
+              />
+              <div class="handle" aria-hidden="true"></div>
+              <span class="tag l">END OF RETAIL</span>
+              <span class="tag r">CLASSIC</span>
+            </div>
+            <input
+              id="cut-skills"
+              class="cut"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              aria-label="Compare end of retail and classic"
+            />
+          </div>
+          <img
+            class="shot"
+            src="/media/launcher-worlds.webp"
+            alt="The launcher's world list, with each world's emulator, era and rules"
+            width="1654"
+            height="1097"
+            loading="lazy"
+          />
+        </div>
+      </section>
+
+      <div class="two">
+        <section class="panel" aria-labelledby="h-thanks">
+          <h2 id="h-thanks">Acknowledgements</h2>
+          <p>
+            Empyrean is a port, not an entirely new design: it builds on the incredible work of the
+            ACE developer community. It also leans on ClassicACE for the early-era rules, plus GDLE
+            and the community's extensive packet-capture archives. Thank you!
+          </p>
+          <p>
+            Dereth is built with an AI coding assistant doing much of the typing. It's open source,
+            so you can check its work yourself, but if AI is a deal-breaker for you, now you know.
+          </p>
+        </section>
+        <section class="panel" aria-labelledby="h-expect">
+          <h2 id="h-expect">What to expect</h2>
+          <p>
+            Dereth started as a hobby project, a way to play on macOS and Linux without a
+            compatibility layer. It has grown into part archaeology, bringing back the old interface
+            and graphics, and part playground for what AC could be, or might have been. I want to
+            keep exploring that.
+          </p>
+          <p>
+            It's young: expect a fully playable client with some rough edges. There's no Decal
+            support (making it work on every platform may not be practical), but a plugin system is
+            in the works.
+          </p>
+          <p>
+            Bugs go to <a href="https://github.com/dereth-network/dereth/issues">Issues</a> and
+            questions to
+            <a href="https://github.com/dereth-network/dereth/discussions">Discussions</a>.
+          </p>
+        </section>
       </div>
-    </main>
+
+      <footer class="foot">
+        <span
+          ><a href="https://github.com/dereth-network/dereth">dereth-network/dereth</a> | Dereth MIT
+          · Empyrean AGPL-3.0</span
+        >
+        <span
+          >Dereth is an independent project, not affiliated with or endorsed by any current rights
+          holder.</span
+        >
+      </footer>
+    </div>
   </body>
 </html>

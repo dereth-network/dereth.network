@@ -1,338 +1,515 @@
 /*
- * A parked landing page, built from the launcher's visual kit
- * (crates/dereth-ui/src/tokens.rs and screen.rs in the launcher repo).
- *
- * The launcher brief's rule carries over unchanged: "The UI should feel like a window into
- * Dereth, not a dashboard." So this is the vista, the brand lockup, and nothing else. No blur,
- * no glass, no marketing copy, and deliberately no interactive elements at all.
+ * The Dereth Network landing page, in the launcher's look: its painting, its dark glass panels,
+ * its pixel-framed gold controls, Cinzel to display and EB Garamond to read. The fonts are under
+ * the SIL Open Font Licence (/media/fonts/OFL-*.txt).
  */
-
+/* Layout: the launcher's own look. A painting held still behind the page, washed dark at the
+   edges; dark glass panels over it; pixel-framed gold controls; Cinzel to display, EB Garamond
+   to read. One reading column, the width of the launcher's content panel. */
 @font-face {
-  /* Cinzel, the display face: the ornate small-caps serif of the brand lockup. SIL OFL 1.1,
-     see /OFL-Cinzel.txt. The launcher's reading face (EB Garamond) is not carried over -- this
-     page has two lines of body text and they do not justify another 850 kB of variable font. */
   font-family: 'Cinzel';
-  src: url('/cinzel.ttf') format('truetype');
+  src: url('/media/fonts/Cinzel-var.ttf') format('truetype');
   font-weight: 400 900;
   font-display: swap;
 }
-
+@font-face {
+  font-family: 'EB Garamond';
+  src: url('/media/fonts/EBGaramond-var.ttf') format('truetype');
+  font-weight: 400 800;
+  font-display: swap;
+}
 :root {
-  /* Palette::DERETH, copied value for value. */
-  --bg: #0b0c0f;
-  --chrome: #0d0e12;
-  --gold: #c99a3d;
-  --gold-bright: #e2b85d;
-  --gold-dark: #6d4b18;
-  --text: #e7d9b0;
-  --text-muted: #a89a78;
-  /* green_disabled: the green drains to stone rather than dimming, so "not yet" is legible at a
-     glance and never reads as "pressed". That token was made for exactly this page. */
-  --stone: #2a2e33;
-
-  /* Metrics::DEFAULT. */
-  --frame-px: 2px;
-  --border-px: 2px;
-  --ornament: 14px;
-  --space: 8px;
-
+  --px: 3px;
+  --ink: #0c0a10;
+  --stone: #17141d;
+  --stone-2: #211c29;
+  --stone-3: #2d2636;
+  --gold-dark: #6b4e22;
+  --gold: #b58a3c;
+  --gold-bright: #e9c77a;
+  --text: #efe6d2;
+  --muted: #a99f8b;
+  --faint: #8a8170;
+  --online: #5fcf55;
+  --line: rgba(233, 199, 122, 0.22);
+  --line-strong: rgba(233, 199, 122, 0.5);
+  --glass: rgba(20, 17, 25, 0.86);
+  --well: rgba(10, 8, 13, 0.72);
+  --radius: 10px;
+  --display: 'Cinzel', 'Trajan Pro', Georgia, serif;
+  --body: 'EB Garamond', Garamond, Georgia, serif;
+  --frame: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' shape-rendering='crispEdges'%3E%3Crect width='12' height='12' fill='%230c0a10'/%3E%3Crect x='1' y='1' width='10' height='10' fill='%23b58a3c'/%3E%3Crect x='1' y='1' width='10' height='1' fill='%23e9c77a'/%3E%3Crect x='1' y='1' width='1' height='10' fill='%23e9c77a'/%3E%3Crect x='1' y='10' width='10' height='1' fill='%236b4e22'/%3E%3Crect x='10' y='1' width='1' height='10' fill='%236b4e22'/%3E%3Crect x='2' y='2' width='8' height='8' fill='%230c0a10'/%3E%3Crect x='3' y='3' width='6' height='6' fill='%2317141d'/%3E%3Crect x='0' y='0' width='3' height='3' fill='%23e9c77a'/%3E%3Crect x='9' y='0' width='3' height='3' fill='%23e9c77a'/%3E%3Crect x='0' y='9' width='3' height='3' fill='%23b58a3c'/%3E%3Crect x='9' y='9' width='3' height='3' fill='%23b58a3c'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%230c0a10'/%3E%3Crect x='10' y='1' width='1' height='1' fill='%230c0a10'/%3E%3Crect x='1' y='10' width='1' height='1' fill='%230c0a10'/%3E%3Crect x='10' y='10' width='1' height='1' fill='%230c0a10'/%3E%3C/svg%3E");
+  --frame-quiet: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Crect width='8' height='8' fill='%230c0a10'/%3E%3Crect x='1' y='1' width='6' height='6' fill='%236b4e22'/%3E%3Crect x='1' y='1' width='6' height='1' fill='%23b58a3c'/%3E%3Crect x='1' y='1' width='1' height='6' fill='%23b58a3c'/%3E%3Crect x='2' y='2' width='4' height='4' fill='%23211c29'/%3E%3C/svg%3E");
+  --frame-lit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Crect width='8' height='8' fill='%230c0a10'/%3E%3Crect x='1' y='1' width='6' height='6' fill='%23b58a3c'/%3E%3Crect x='1' y='1' width='6' height='1' fill='%23e9c77a'/%3E%3Crect x='1' y='1' width='1' height='6' fill='%23e9c77a'/%3E%3Crect x='2' y='2' width='4' height='4' fill='%232d2636'/%3E%3C/svg%3E");
+  --dither: repeating-conic-gradient(rgba(255, 240, 210, 0.022) 0% 25%, transparent 0% 50%) 0 0 /
+    calc(var(--px) * 2) calc(var(--px) * 2);
   color-scheme: dark;
 }
-
-*,
-*::before,
-*::after {
+* {
   box-sizing: border-box;
 }
-
-html,
-body {
-  height: 100%;
+html {
+  background: var(--ink);
 }
-
 body {
   margin: 0;
-  background: var(--bg);
+  background: var(--ink);
   color: var(--text);
-  font-family: 'Cinzel', 'Georgia', 'Times New Roman', serif;
+  font: 19px/1.5 var(--body);
   -webkit-font-smoothing: antialiased;
+  padding-inline: 16px;
+}
+a {
+  color: var(--gold-bright);
+  text-underline-offset: 3px;
+}
+:focus-visible {
+  outline: var(--px) solid var(--gold-bright);
+  outline-offset: var(--px);
 }
 
-/*
- * The art is 1867x842 and there is no more detail behind it, so it is never scaled past 1:1.
- * The stage is a framed window sized to fit the viewport and capped at the image's own pixels;
- * anything left over is the near-black ground, which reads as a mat around a picture rather than
- * as a page that failed to fill. Dead space on a large monitor beats a blurry, hard-cropped
- * close-up of rock -- which is what object-fit: cover produced on anything taller than 2.2:1.
- */
-
-:root {
-  --vista-w: 1867;
-  --vista-h: 842;
-  --stage-pad: clamp(0px, 2.2vmin, 40px);
-}
-
-.shell {
-  min-height: 100svh;
-  display: grid;
-  place-items: center;
-  padding: var(--stage-pad);
-  background: var(--bg);
-}
-
-.stage {
-  position: relative;
-  overflow: hidden;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  /* The narrowest of: the space available, the image's native width, and the width whose
-     matching height still fits the viewport. Whichever binds, the image only ever scales down. */
-  width: min(
-    100%,
-    calc(var(--vista-w) * 1px),
-    calc((100svh - 2 * var(--stage-pad)) * var(--vista-w) / var(--vista-h))
-  );
-  aspect-ratio: var(--vista-w) / var(--vista-h);
-  /* Everything inside is sized in cqw, so the composition holds its proportions at any stage
-     size. Sizes below are the launcher's own, as a share of its 1280px design width. */
-  container-type: size;
-}
-
+/* The painting, held still while the page scrolls over it. */
 .vista {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+.vista img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+  display: block;
+}
+.vista::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, rgba(12, 10, 16, 0.6), rgba(12, 10, 16, 0) 30%),
+    linear-gradient(
+      to top,
+      rgba(12, 10, 16, 0.9),
+      rgba(12, 10, 16, 0.35) 55%,
+      rgba(12, 10, 16, 0) 80%
+    ),
+    linear-gradient(to right, rgba(12, 10, 16, 0.55), rgba(12, 10, 16, 0) 35%);
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  max-width: 62rem;
+  margin-inline: auto;
+  padding-block: 28px 40px;
+  display: grid;
+  gap: 22px;
+}
+
+/* The lockup and the rail, laid across the top. */
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.lockup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+.lockup img {
+  width: 60px;
+  height: 60px;
+  flex: none;
+  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.6));
+}
+.lockup .word {
+  font: 600 25px/0.98 var(--display);
+  letter-spacing: 0.045em;
+  color: var(--gold-bright);
+  text-shadow:
+    1px 1px 0 rgba(12, 10, 16, 0.55),
+    2px 3px 0 rgba(12, 10, 16, 0.7);
+}
+.rail {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.rail a,
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 18px;
+  border: calc(var(--px) * 2) solid transparent;
+  border-image: var(--frame-quiet) 2 / calc(var(--px) * 2) stretch;
+  background: var(--stone-2) var(--dither);
+  font: 600 13px var(--display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+  text-decoration: none;
+  image-rendering: pixelated;
+  white-space: nowrap;
+}
+.rail a:hover,
+.btn:hover {
+  border-image-source: var(--frame-lit);
+  background-color: var(--stone-3);
+  color: #fff;
+}
+.rail a:active,
+.btn:active {
+  transform: translateY(var(--px));
+}
+
+/* A glass panel, the launcher's content panel. */
+.panel {
+  background: var(--glass) var(--dither);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 26px 28px;
+  min-width: 0;
+}
+.panel h2 {
+  margin: 0 0 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+  font: 600 22px var(--display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+}
+.panel p {
+  margin: 0 0 12px;
+  text-wrap: pretty;
+}
+.panel p:last-child {
+  margin-bottom: 0;
+}
+
+/* The opening panel: what this is, and the plate. */
+.intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 26px;
+  align-items: end;
+}
+.intro h1 {
+  margin: 0 0 10px;
+  font: 600 clamp(26px, 4vw, 38px)/1.12 var(--display);
+  letter-spacing: 0.04em;
+  color: var(--text);
+  text-wrap: balance;
+}
+.intro .note {
+  color: var(--muted);
+  font-size: 17px;
+}
+.actions {
+  display: grid;
+  gap: 10px;
+}
+.actions .row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 72px;
+  text-decoration: none;
+  border: calc(var(--px) * 4) solid transparent;
+  border-image: var(--frame) 4 / calc(var(--px) * 4) stretch;
+  background: linear-gradient(
+    to bottom,
+    #78c865 0,
+    #78c865 calc(var(--px) * 1),
+    #4f9f44 calc(var(--px) * 1),
+    #4f9f44 18%,
+    #3f8a39 18%,
+    #3f8a39 40%,
+    #33772f 40%,
+    #33772f 62%,
+    #2a6628 62%,
+    #2a6628 84%,
+    #214f21 84%
+  );
+  font: 700 24px var(--display);
+  letter-spacing: 0.14em;
+  color: #f7f0dc;
+  text-shadow: 0 3px 0 rgba(12, 10, 16, 0.55);
+  image-rendering: pixelated;
+}
+.play:hover {
+  filter: brightness(1.07);
+  color: #fff;
+}
+.play:active {
+  transform: translateY(var(--px));
+}
+.plate {
+  display: grid;
+}
+.also {
+  margin: 3px 0 0;
+  line-height: 1.2;
+  text-align: center;
+  font-size: 16px;
+  color: var(--muted);
+}
+.reach {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 2px 0 0;
+}
+
+/* The two interfaces, one view. */
+.slider {
+  --cut: 50%;
+  position: relative;
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: var(--well);
+  touch-action: none;
+  cursor: ew-resize;
+}
+.slider img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  /* The stage carries the image's exact aspect ratio, so this neither crops nor distorts. */
   object-fit: cover;
-}
-
-/*
- * The vignette, as two directional washes rather than a blur -- the brief bans "blur-heavy modern
- * glass UI", and these are what let ivory serif text sit on a violet sky without a card behind
- * it. Stops are the launcher's: top-down over the upper 34%, and a heavier bottom-up wash over
- * the lower 40%.
- */
-.wash {
-  position: absolute;
-  left: 0;
-  right: 0;
+  display: block;
   pointer-events: none;
 }
-
-.wash-top {
-  top: 0;
-  height: 34%;
-  background: linear-gradient(to bottom, rgb(11 12 15 / 0.7), rgb(11 12 15 / 0));
+.slider .over {
+  clip-path: inset(0 0 0 var(--cut, 50%));
 }
-
-.wash-bottom {
+.slider .handle {
+  position: absolute;
+  top: 0;
   bottom: 0;
-  height: 40%;
-  background: linear-gradient(to bottom, rgb(11 12 15 / 0), rgb(11 12 15 / 0.8));
+  left: var(--cut, 50%);
+  width: 2px;
+  margin-left: -1px;
+  background: var(--gold-bright);
+  box-shadow: 0 0 0 1px rgba(12, 10, 16, 0.6);
 }
-
-/*
- * A curtain behind the lockup. The paintings rotate and some put a bright gold sky exactly where
- * this text sits, so the top wash alone is not enough to hold it. The launcher fakes this with a
- * row of 24 vertical gradients because its draw list has no horizontal gradient; CSS has both, so
- * one ellipse anchored at the corner gives the same both-directions falloff directly.
- */
-.curtain {
+.slider .tag {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: min(62ch, 60%);
-  height: 42vh;
-  height: 46cqh;
-  pointer-events: none;
-  background: radial-gradient(
-    ellipse at top left,
-    rgb(11 12 15 / 0.72) 0%,
-    rgb(11 12 15 / 0.44) 34%,
-    rgb(11 12 15 / 0.14) 62%,
-    rgb(11 12 15 / 0) 100%
-  );
+  bottom: 10px;
+  font: 600 11px var(--display);
+  letter-spacing: 0.14em;
+  background: rgba(12, 10, 16, 0.82);
+  color: var(--gold-bright);
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
 }
-
-/* ---- frame and corner ornaments -------------------------------------------------------- */
-
-.frame {
-  position: absolute;
-  inset: 0;
-  border: var(--frame-px) solid var(--gold-dark);
-  pointer-events: none;
+.slider .tag.l {
+  left: 10px;
 }
-
-.ornament {
-  position: absolute;
-  width: var(--ornament);
-  height: var(--ornament);
-  border: 0 solid var(--gold-bright);
+.slider .tag.r {
+  right: 10px;
 }
-
-.ornament.tl {
-  top: -1px;
-  left: -1px;
-  border-top-width: var(--border-px);
-  border-left-width: var(--border-px);
-}
-
-.ornament.tr {
-  top: -1px;
-  right: -1px;
-  border-top-width: var(--border-px);
-  border-right-width: var(--border-px);
-}
-
-.ornament.bl {
-  bottom: -1px;
-  left: -1px;
-  border-bottom-width: var(--border-px);
-  border-left-width: var(--border-px);
-}
-
-.ornament.br {
-  bottom: -1px;
-  right: -1px;
-  border-bottom-width: var(--border-px);
-  border-right-width: var(--border-px);
-}
-
-/* ---- the brand lockup ------------------------------------------------------------------ */
-
-.lockup {
-  position: relative;
+.cut-row {
   display: flex;
   align-items: center;
-  gap: clamp(8px, 1.8cqw, 22px);
-  padding: clamp(12px, 2.2cqw, 34px);
+  gap: 12px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 16px;
+  flex-wrap: wrap;
+}
+.cut-row input {
+  flex: 1 1 12rem;
+  accent-color: var(--gold);
+  min-width: 0;
 }
 
-.star {
-  width: clamp(44px, 7.5cqw, 104px);
-  height: auto;
-  flex: none;
-  filter: drop-shadow(0 2px 4px rgb(11 12 15 / 0.75));
-}
-
-.wordmark {
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  font-size: clamp(1.4rem, 4.53cqw, 4rem);
-  font-weight: 600;
-  /* The two words sit on a tight leading so they read as one mark rather than two lines. */
-  line-height: 0.96;
-  letter-spacing: 0.045em;
-  text-transform: uppercase;
+.intro h1 span {
+  display: block;
+  margin-top: 6px;
+  font: 500 clamp(17px, 2.2vw, 22px)/1.3 var(--display);
+  letter-spacing: 0.05em;
   color: var(--gold-bright);
-  /* Two struck shadows at different offsets, then the face. No stroke: a stroked serif at this
-     size loses its thin strokes entirely, and one shadow is not enough against a lit sky. */
-  text-shadow:
-    1px 1px 0 rgb(11 12 15 / 0.55),
-    2px 3px 0 rgb(11 12 15 / 0.7);
 }
-
-/* ---- the "not yet" plate ---------------------------------------------------------------- */
-
-/*
- * The launcher anchors its furniture to one column on the right so the vista stays uninterrupted
- * -- "a window into Dereth, not a dashboard". The plate sits where its PLAY button would, which
- * also keeps it off the figure standing centre-frame.
- */
-.plate-row {
-  position: relative;
-  align-self: end;
-  justify-self: end;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: calc(var(--space) * 1.5);
-  padding: 0 clamp(14px, 2.6cqw, 42px) clamp(10px, 3cqh, 36px);
-  text-align: right;
+.cut {
+  display: block;
+  width: 100%;
+  margin: 12px 0 4px;
+  accent-color: var(--gold);
 }
-
-.plate {
-  margin: 0;
-  padding: clamp(10px, 2.6cqh, 30px) clamp(18px, 4.4cqw, 70px);
-  background: rgb(42 46 51 / 0.82);
-  border: var(--border-px) solid var(--gold);
+.bullets {
+  margin: 16px 0 0;
+  padding-left: 1.2em;
+  display: grid;
+  gap: 8px;
+}
+.bullets li::marker {
+  color: var(--gold);
+}
+.bullets b {
   color: var(--text);
-  font-size: clamp(1.1rem, 3.75cqw, 3.2rem);
   font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  line-height: 1;
-  box-shadow: 0 2px 18px rgb(11 12 15 / 0.6);
+}
+.panel > p + .bullets {
+  margin-top: -4px;
+}
+code {
+  font:
+    0.85em ui-monospace,
+    Consolas,
+    monospace;
+  background: var(--well);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 5px;
 }
 
-/* ---- narrow screens --------------------------------------------------------------------- */
-
-/*
- * Portrait and square-ish windows. A 2.2:1 stage here would be a letterbox slot marooned in
- * ground, so the window goes tall and crops the art instead. At these widths that is still a
- * long way down from 1867px, so the crop stays crisp -- the thing we were avoiding was scaling
- * *up*, not cropping.
- */
-@media (max-aspect-ratio: 1 / 1) {
-  .stage {
-    width: min(100%, calc((100svh - 2 * var(--stage-pad)) * 4 / 5));
-    aspect-ratio: 4 / 5;
-  }
-
-  .vista {
-    object-position: center 42%;
-  }
-
-  /* Too narrow for a right-hand column; centre the plate under the lockup instead. */
-  .plate-row {
-    justify-self: center;
-    align-items: center;
-    text-align: center;
-  }
-
-  .lockup {
-    gap: clamp(6px, 2.4cqw, 18px);
-  }
-
-  .wordmark {
-    font-size: clamp(1.3rem, 7.4cqw, 3rem);
-  }
-
-  .star {
-    width: clamp(38px, 12cqw, 92px);
-  }
-
-  .plate {
-    font-size: clamp(1rem, 6cqw, 2.4rem);
-  }
-
-  .curtain {
-    width: 100%;
-    height: 30cqh;
-  }
+/* The list of what's here, set like the launcher's world rows. */
+.rows {
+  display: grid;
+  margin: 0;
+}
+.rows div {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr);
+  gap: 18px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line);
+}
+.rows div:last-child {
+  border-bottom: 0;
+}
+.rows dt {
+  font: 600 15px var(--display);
+  letter-spacing: 0.06em;
+  color: var(--text);
+  margin: 0;
+}
+.rows dd {
+  margin: 0;
+  color: var(--muted);
+}
+.dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--online);
+  margin-right: 9px;
+  vertical-align: 1px;
 }
 
-/* ---- rights notice ---------------------------------------------------------------------- */
-
-/*
- * Kept inside the stage so the disclaimer travels with the artwork it disclaims, and given no
- * bar of its own: the bottom wash is already at 0.8 down here, so muted type sits on it without
- * another band interrupting the vista.
- */
-.notice {
-  position: relative;
-  padding: 0 clamp(14px, 2.6cqw, 42px) clamp(10px, 2.4cqh, 26px);
-  text-align: center;
+.shots {
+  display: grid;
+  gap: 22px;
+}
+.shots .shot {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+}
+.compare {
+  min-width: 0;
+}
+/* A screenshot smaller than the panel is shown at its own pixels, never enlarged. */
+.compare.native {
+  max-width: 804px;
+  margin-inline: auto;
+  width: 100%;
+}
+.panel h2.named {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.panel h2.named img {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.6));
+}
+.shots figure {
+  margin: 0;
+  min-width: 0;
+}
+.shots figure.wide {
+  grid-column: 1 / -1;
+}
+.shots img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.shots figcaption {
+  font-size: 15px;
+  color: var(--muted);
+  padding-top: 6px;
 }
 
-.notice p {
-  margin: 0 auto;
-  max-width: 100%;
-  color: var(--text-muted);
-  font-size: clamp(0.55rem, 1.03cqw, 0.9rem);
-  line-height: 1.45;
+.two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 18px;
+  font-size: 14px;
   letter-spacing: 0.03em;
-  text-shadow: 0 1px 3px rgb(11 12 15 / 0.9);
+  color: var(--faint);
+  padding: 4px 4px 0;
+}
+.foot a {
+  color: inherit;
+}
+.foot a:hover {
+  color: var(--gold-bright);
+}
+
+@media (max-width: 760px) {
+  .intro,
+  .two {
+    grid-template-columns: 1fr;
+  }
+  .rows div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .panel {
+    padding: 20px 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rail a:active,
+  .btn:active,
+  .play:active {
+    transform: none;
+  }
+}
+
+.slider[data-ratio='charselect'] {
+  aspect-ratio: 804 / 647;
+}
+.slider[data-ratio='wide'] {
+  aspect-ratio: 1924 / 1127;
 }
