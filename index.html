@@ -124,6 +124,18 @@
             A launcher with the community server list, and support for adding your own servers.
           </li>
         </ul>
+        <p>And some experimental features:</p>
+        <ul class="bullets">
+          <li>
+            <b>Horizon.</b> A new interface, camera and controls, built on the same physics and
+            simulation as retail.
+          </li>
+          <li>
+            <b>High Fidelity.</b> Rendering upgrades for Horizon: better lighting and atmosphere,
+            weather, and shadows. Off by default.
+          </li>
+          <li><b>Gamepad mode.</b> With Horizon, play the whole game with a controller.</li>
+        </ul>
       </section>
 
       <section class="panel" aria-labelledby="h-emp">
@@ -224,6 +236,99 @@
               max="100"
               value="50"
               aria-label="Compare end of retail and classic"
+            />
+          </div>
+          <div class="compare">
+            <div class="slider" data-slider data-ratio="wide">
+              <img
+                src="/media/hifi-off.webp"
+                alt="Outside Holtburg with High Fidelity off"
+                width="1924"
+                height="1127"
+                loading="lazy"
+              />
+              <img
+                class="over"
+                src="/media/hifi-on.webp"
+                alt="The same view with High Fidelity on: warmer light, shadows and haze"
+                width="1924"
+                height="1127"
+                loading="lazy"
+              />
+              <div class="handle" aria-hidden="true"></div>
+              <span class="tag l">STANDARD</span>
+              <span class="tag r">HIGH FIDELITY</span>
+            </div>
+            <input
+              id="cut-hifi"
+              class="cut"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              aria-label="Compare standard rendering and High Fidelity"
+            />
+          </div>
+          <div class="compare">
+            <div class="slider" data-slider data-ratio="wide">
+              <img
+                src="/media/hifi-night-off.webp"
+                alt="A lamp outside a house in Holtburg at night, High Fidelity off"
+                width="1924"
+                height="1127"
+                loading="lazy"
+              />
+              <img
+                class="over"
+                src="/media/hifi-night-on.webp"
+                alt="The same view with High Fidelity on: the lamp lights the ground and the window glows"
+                width="1924"
+                height="1127"
+                loading="lazy"
+              />
+              <div class="handle" aria-hidden="true"></div>
+              <span class="tag l">STANDARD</span>
+              <span class="tag r">HIGH FIDELITY</span>
+            </div>
+            <input
+              id="cut-hifi-night"
+              class="cut"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              aria-label="Compare standard rendering and High Fidelity at night"
+            />
+          </div>
+          <div class="compare">
+            <div class="slider" data-slider data-ratio="wide">
+              <img
+                src="/media/horizon-kbm.webp"
+                alt="Horizon with keyboard and mouse, fighting drudges with the inventory open"
+                width="1924"
+                height="1127"
+                loading="lazy"
+              />
+              <img
+                class="over"
+                src="/media/horizon-gamepad.webp"
+                alt="The same moment in gamepad mode, with a cross-shaped hotbar and a cursor in the inventory"
+                width="1924"
+                height="1127"
+                loading="lazy"
+              />
+              <div class="handle" aria-hidden="true"></div>
+              <span class="tag l">KEYBOARD &amp; MOUSE</span>
+              <span class="tag r">GAMEPAD</span>
+            </div>
+            <input
+              id="cut-horizon"
+              class="cut"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              aria-label="Compare Horizon with keyboard and mouse and gamepad mode"
             />
           </div>
           <img

@@ -366,6 +366,9 @@ a {
 .panel > p + .bullets {
   margin-top: -4px;
 }
+.panel > .bullets + p {
+  margin-top: 22px;
+}
 code {
   font:
     0.85em ui-monospace,
