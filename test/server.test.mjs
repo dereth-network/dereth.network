@@ -5,7 +5,13 @@ import { request } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, before, test } from 'node:test';
-import { MOVED, contentSecurityPolicy, createSite, staticHostFiles } from '../server.mjs';
+import {
+  MOVED,
+  NOT_INDEXED,
+  contentSecurityPolicy,
+  createSite,
+  staticHostFiles,
+} from '../server.mjs';
 
 let root;
 let server;
@@ -14,9 +20,15 @@ let base;
 before(async () => {
   root = await mkdtemp(join(tmpdir(), 'dereth-site-'));
   await mkdir(join(root, 'worlds'));
+  await mkdir(join(root, 'link'));
   await mkdir(join(root, 'assets'));
+  await mkdir(join(root, 'directory', 'character'), { recursive: true });
   await writeFile(join(root, 'index.html'), '<title>Home</title>');
   await writeFile(join(root, 'worlds', 'index.html'), '<title>Worlds</title>');
+  await writeFile(join(root, 'link', 'index.html'), '<title>Link a character</title>');
+  await writeFile(join(root, 'directory', 'index.html'), '<title>Directory</title>');
+  await writeFile(join(root, 'directory', 'character', 'index.html'), '<title>A character</title>');
+  await writeFile(join(root, 'robots.txt'), 'User-agent: *\nDisallow: /directory/\n');
   await writeFile(join(root, 'assets', 'page-1a2b.js'), 'export {};');
   server = createSite({ root, releaseId: 'test', hubUrl: 'http://127.0.0.1:8650/' });
   await new Promise((done) => server.listen(0, '127.0.0.1', done));
@@ -57,12 +69,14 @@ test('any other page address gets the home page; any other file is missing', asy
   assert.equal(await raw('/../package.json'), 404);
 });
 
-test('the link page moved to your characters, with its query', async () => {
+test('the link page the hub names in game is a page of its own, never moved', async () => {
+  assert.deepEqual(MOVED, {});
   for (const path of ['/link/', '/link']) {
-    const moved = await fetch(new URL(`${path}?signin=failed`, base), { redirect: 'manual' });
-    assert.equal(moved.status, 302);
-    assert.equal(moved.headers.get('location'), '/characters/?signin=failed');
+    const page = await fetch(new URL(`${path}?signin=failed`, base), { redirect: 'manual' });
+    assert.equal(page.status, 200, path);
+    assert.equal(await page.text(), '<title>Link a character</title>');
   }
+  assert.equal(staticHostFiles()._redirects, '', 'no redirect for a static host either');
 });
 
 test('hashed files are cached for a year, pages are checked each visit', async () => {
@@ -81,9 +95,22 @@ test('every answer carries the policy, which lets pages reach the hub and nothin
   assert.equal((await get('/no-such-file.png')).headers.get('content-security-policy'), policy);
 });
 
+// `_headers` as its rules: each path, and the header lines under it.
+function rules(text) {
+  const out = new Map();
+  let path;
+  for (const line of text.split('\n')) {
+    if (!line) continue;
+    if (!line.startsWith(' ')) out.set((path = line), []);
+    else out.get(path).push(line.trim());
+  }
+  return out;
+}
+
 test('a static host is given the same headers, caching and moved pages as the server', async () => {
   const { _headers, _redirects } = staticHostFiles('http://127.0.0.1:8650');
-  const [all, assets] = _headers.split('/assets/*\n');
+  const all = rules(_headers);
+  assert.deepEqual([...all.keys()], ['/*', '/assets/*', NOT_INDEXED, `${NOT_INDEXED}/*`]);
   const answer = await get('/worlds/');
   for (const name of [
     'content-security-policy',
@@ -91,17 +118,28 @@ test('a static host is given the same headers, caching and moved pages as the se
     'referrer-policy',
     'x-frame-options',
   ]) {
-    const line = all.split('\n').find((l) => l.trim().toLowerCase().startsWith(`${name}:`));
+    const line = all.get('/*').find((l) => l.toLowerCase().startsWith(`${name}:`));
     assert.equal(line?.split(': ').slice(1).join(': '), answer.headers.get(name), name);
   }
-  assert.ok(all.startsWith('/*\n'));
-  assert.equal(
-    assets.trim(),
+  assert.deepEqual(all.get('/assets/*'), [
     `Cache-Control: ${(await get('/assets/page-1a2b.js')).headers.get('cache-control')}`,
-  );
+  ]);
+  const directory = await get('/directory/character/');
+  for (const path of [NOT_INDEXED, `${NOT_INDEXED}/*`])
+    assert.deepEqual(all.get(path), [`X-Robots-Tag: ${directory.headers.get('x-robots-tag')}`]);
   for (const [from, to] of Object.entries(MOVED))
     for (const path of [from, `${from}/`])
       assert.match(_redirects, new RegExp(`^${path} ${to} 302$`, 'm'));
+});
+
+test('the directory’s pages are served noindex, and no other page is', async () => {
+  for (const path of ['/directory/', '/directory', '/directory/character/'])
+    assert.equal((await get(path)).headers.get('x-robots-tag'), 'noindex', path);
+  for (const path of ['/', '/worlds/', '/no/such/page', '/assets/page-1a2b.js'])
+    assert.equal((await get(path)).headers.get('x-robots-tag'), null, path);
+  const robots = await get('/robots.txt');
+  assert.match(robots.headers.get('content-type'), /^text\/plain/);
+  assert.match(await robots.text(), /Disallow: \/directory\//);
 });
 
 test('the hub is hub.dereth.network unless another is named', () => {

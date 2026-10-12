@@ -148,9 +148,9 @@ test('each of the hub’s refusals reads plainly', () => {
     'Too many registrations today. Try again in about 11 hours.',
   );
   assert.equal(explain(err(429, 'RATE_LIMITED', 'Slow down.')), 'Slow down.');
-  assert.match(
+  assert.equal(
     explain(err(422, 'LINK_FAILED', 'x', 'no_such_code')),
-    /dn link in game for a new one/,
+    'This link was used already or has expired. Type @dn link in game for a new one.',
   );
   assert.match(explain(err(409, 'CONFLICT', 'x', 'too_many_characters')), /Unlink one first/);
   assert.match(explain(err(0, 'NETWORK')), /couldn.t be reached/);

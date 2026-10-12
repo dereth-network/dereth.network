@@ -135,8 +135,13 @@ async function main() {
     );
     return;
   }
-  if (signin === 'failed') append(notices, notice('error', 'Signing in with Discord didn’t finish. Try again.'));
-  if (signin === 'busy') append(notices, notice('note', 'Discord asked the hub to wait a moment. Try signing in again shortly.'));
+  if (signin === 'failed')
+    append(notices, notice('error', 'Signing in with Discord didn’t finish. Try again.'));
+  if (signin === 'busy')
+    append(
+      notices,
+      notice('note', 'Discord asked the hub to wait a moment. Try signing in again shortly.'),
+    );
   let signedIn;
   try {
     signedIn = await hub.operator();

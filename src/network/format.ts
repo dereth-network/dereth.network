@@ -182,8 +182,7 @@ const CODES: Record<string, string> = {
 
 // Why linking a character was refused, by the hub's reason.
 const LINK_REASONS: Record<string, string> = {
-  no_such_code:
-    'That code didn’t link anything: it isn’t one the hub gave, it was used already, or its ten minutes are up. Type /dn link in game for a new one.',
+  no_such_code: 'This link was used already or has expired. Type @dn link in game for a new one.',
   too_many_characters: 'You have linked as many characters as one account may. Unlink one first.',
 };
 
@@ -305,12 +304,65 @@ export function addressUnproven(world: World): boolean {
   return world.ownership?.state === 'managed' && world.ownership.endpointVerified === false;
 }
 
-/** One entry of a world's history: what happened, who did it, and what it records. */
+// The rooms mirrored into Discord, by the names players know them by.
+const ROOM_NAMES: Record<string, string> = {
+  global: 'Global',
+  general: 'General',
+  trade: 'Trade',
+  lfg: 'LFG',
+  roleplay: 'Roleplay',
+};
+
+/** A room's name as players know it; a network channel by its address (`oldguard@channel`). */
+export function roomName(room: string): string {
+  return ROOM_NAMES[room] ?? room;
+}
+
+/** A mirror into Discord set or stopped, in words, or null for details that say neither. The hub
+ * changes one itself when the room that carries a world's Global chat changes: that room's mirror
+ * becomes Global's (`was`), or goes when Global is mirrored already (`carriesGlobal`). */
+function mirrorEventText(details: Record<string, unknown>, by: string): string | null {
+  const room = typeof details.room === 'string' ? roomName(details.room) : 'A room';
+  if (details.mirrored === true) {
+    const through = details.through === 'webhook' ? 'a webhook' : 'the bot';
+    const was =
+      typeof details.was === 'string'
+        ? `: ${roomName(details.was)}’s mirror, since ${roomName(details.was)} carries Global`
+        : '';
+    return `${room} mirrored into the Discord channel ${details.channel}, through ${through}, by ${by}${was}`;
+  }
+  if (details.mirrored === false)
+    return details.carriesGlobal === true
+      ? `${room} no longer mirrored into Discord, by ${by}: ${room} carries Global, which is mirrored already`
+      : `${room} no longer mirrored into Discord, by ${by}`;
+  return null;
+}
+
+/** Where a world carries Global chat, set, in words. */
+function globalRoomEventText(details: Record<string, unknown>, by: string): string {
+  const where = (r: unknown) =>
+    r === 'off' ? 'no room' : typeof r === 'string' ? roomName(r) : 'a room';
+  const from = typeof details.was === 'string' ? ` (from ${where(details.was)})` : '';
+  const seed = details.seed === true ? ', as the world’s settings said' : '';
+  return `Cross-world Global chat carried in ${where(details.room)}${from}${seed}, by ${by}`;
+}
+
+/** One entry of a world's history, or of the hub's Discord log: what happened, who did it, and
+ * what it records. */
 export function auditText(event: AuditEvent, me: string | null): string {
+  const by = actorText(event.actor, me);
+  const details = event.details ?? {};
+  const mirror = event.kind === 'discord-mirror' ? mirrorEventText(details, by) : null;
+  if (mirror) return mirror;
+  if (event.kind === 'global-room') return globalRoomEventText(details, by);
+  if (event.kind === 'discord-avatar')
+    return typeof details.url === 'string'
+      ? `The picture mirrored lines show set to ${details.url}, by ${by}`
+      : `The picture mirrored lines show removed, by ${by}`;
   const facts = Object.entries(event.details ?? {})
     .filter(([, v]) => typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean')
     .map(([k, v]) => `${k}: ${v}`);
-  const what = `${event.kind.replaceAll('_', ' ')} by ${actorText(event.actor, me)}`;
+  const what = `${event.kind.replaceAll('_', ' ')} by ${by}`;
   return facts.length ? `${what} (${facts.join(', ')})` : what;
 }
 

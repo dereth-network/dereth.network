@@ -154,7 +154,6 @@ const ROUTES: [
     '/v1/person/characters/Sir%20Bob%40coldeve',
     true,
   ],
-  ['show alts', (h) => h.setAlts(true), 'PUT', '/v1/person/alts', true, { shown: true }],
   [
     'remove a person friend',
     (h) => h.removePersonFriend('Ann@frost'),
@@ -163,6 +162,103 @@ const ROUTES: [
     true,
   ],
   ['forget me', (h) => h.forgetPerson(), 'DELETE', '/v1/person', true],
+  [
+    'a world’s mirrors into Discord',
+    (h) => h.worldMirrors('coldeve'),
+    'GET',
+    '/v1/operator/worlds/coldeve/discord/mirrors',
+    true,
+  ],
+  [
+    'mirror a world’s room through the bot',
+    (h) => h.setWorldMirror('coldeve', 'global', { channel: '1558376951000000101' }),
+    'PUT',
+    '/v1/operator/worlds/coldeve/discord/mirrors/global',
+    true,
+    { channel: '1558376951000000101' },
+  ],
+  [
+    'mirror a world’s room through a webhook',
+    (h) =>
+      h.setWorldMirror('coldeve', 'general', {
+        webhook: 'https://discord.com/api/webhooks/1558376954619629701/tok_en-1',
+      }),
+    'PUT',
+    '/v1/operator/worlds/coldeve/discord/mirrors/general',
+    true,
+    { webhook: 'https://discord.com/api/webhooks/1558376954619629701/tok_en-1' },
+  ],
+  [
+    'stop a world’s mirror',
+    (h) => h.stopWorldMirror('coldeve', 'general'),
+    'DELETE',
+    '/v1/operator/worlds/coldeve/discord/mirrors/general',
+    true,
+  ],
+  ['the hub’s Discord settings', (h) => h.discordAdmin(), 'GET', '/v1/admin/discord', true],
+  [
+    'the network’s mirror of a channel',
+    (h) => h.setNetworkMirror('oldguard@channel', { channel: '1558376951000000101' }),
+    'PUT',
+    '/v1/admin/discord/mirrors/oldguard%40channel',
+    true,
+    { channel: '1558376951000000101' },
+  ],
+  [
+    'stop the network’s mirror',
+    (h) => h.stopNetworkMirror('global'),
+    'DELETE',
+    '/v1/admin/discord/mirrors/global',
+    true,
+  ],
+  [
+    'take a world’s mirror away',
+    (h) => h.takeWorldMirror('coldeve', 'global'),
+    'DELETE',
+    '/v1/admin/discord/worlds/coldeve/mirrors/global',
+    true,
+  ],
+  [
+    'the picture mirrored lines show',
+    (h) => h.setMirrorAvatar('https://dereth.network/media/art/emblem.png'),
+    'PUT',
+    '/v1/admin/discord/avatar',
+    true,
+    { url: 'https://dereth.network/media/art/emblem.png' },
+  ],
+  [
+    'no picture',
+    (h) => h.setMirrorAvatar(null),
+    'PUT',
+    '/v1/admin/discord/avatar',
+    true,
+    { url: null },
+  ],
+  ['the hub’s Discord log', (h) => h.discordLog(), 'GET', '/v1/admin/discord/log', true],
+  ['the hub’s settings', (h) => h.hubSettings(), 'GET', '/v1/admin/settings', true],
+  [
+    'a change to the hub’s settings',
+    (h) => h.setHubSettings({ approvalsPerDay: 400, pendingDays: 21 }),
+    'PUT',
+    '/v1/admin/settings',
+    true,
+    { approvalsPerDay: 400, pendingDays: 21 },
+  ],
+  ['the hub’s settings log', (h) => h.hubSettingsLog(), 'GET', '/v1/admin/settings/log', true],
+  [
+    'a listed character',
+    (h) => h.directoryCharacter('Sir Bob@coldeve'),
+    'GET',
+    '/v1/directory/characters/Sir%20Bob%40coldeve',
+    false,
+  ],
+  [
+    'an allegiance’s members',
+    (h) => h.directoryAllegiance('coldeve', 'k3Yq0pW9xLmN', { limit: 50, offset: 50 }),
+    'GET',
+    '/v1/directory/allegiances/coldeve/k3Yq0pW9xLmN?limit=50&offset=50',
+    false,
+  ],
   [
     'report',
     (h) => h.report({ slug: 'coldeve', reason: 'spam', details: 'Tells every minute.' }),
@@ -226,7 +322,7 @@ test('a registration answers with the world, its key and its verification', asyn
       token: 'dnv_q0Zx4l',
       expiresAt: '2026-10-18T18:05:02.000Z',
       page: { hosts: ['play.coldeve.example.org', 'coldeve.example.org'] },
-      game: '/dn verify dnv_q0Zx4l',
+      game: '@dn verify dnv_q0Zx4l',
     },
   };
   const { fetch } = stub(json(201, answer));
@@ -421,4 +517,52 @@ test('a code the hub never gave, a spent one and a lapsed one are one refusal', 
     code: 'LINK_FAILED',
     reason: 'no_such_code',
   });
+});
+
+test('a directory search is read without the cookie, its fields named as the hub names them', async () => {
+  const { sent, fetch } = stub(json(200, { data: [] }), json(200, { data: [] }));
+  const hub = createHub(HUB, fetch);
+  await hub.directory({
+    q: 'sir bo',
+    world: 'coldeve',
+    levelMin: 100,
+    levelMax: 200,
+    heritage: 1,
+    allegiance: 'order of',
+    sort: 'level',
+    limit: 50,
+    offset: 50,
+  });
+  assert.equal(
+    sent[0].url,
+    `${HUB}/v1/directory/characters?q=sir+bo&world=coldeve&level_min=100&level_max=200&heritage=1&allegiance=order+of&sort=level&limit=50&offset=50`,
+  );
+  assert.equal(sent[0].init.credentials, 'omit');
+  await hub.directory({ sort: 'updated', offset: 0 });
+  assert.equal(sent[1].url, `${HUB}/v1/directory/characters`, 'the default sort and page');
+});
+
+test('every kind of absence from the directory reads as no character, and no allegiance', async () => {
+  const absent = () =>
+    json(404, { error: { code: 'NOT_FOUND', message: 'No such character in the directory' } });
+  const { fetch } = stub(absent(), absent());
+  const hub = createHub(HUB, fetch);
+  assert.equal(await hub.directoryCharacter('Nobody@coldeve'), null);
+  assert.equal(await hub.directoryAllegiance('coldeve', 'no-such-key'), null);
+});
+
+test('a directory answer that is not absence is still a refusal', async () => {
+  const { fetch } = stub(
+    json(429, { error: { code: 'RATE_LIMITED', message: 'Slow down', retryAfterSeconds: 20 } }),
+    new TypeError('Failed to fetch'),
+  );
+  const hub = createHub(HUB, fetch);
+  await assert.rejects(hub.directory({ q: 'bob' }), { status: 429, retryAfterSeconds: 20 });
+  await assert.rejects(hub.directoryCharacter('Sir Bob@coldeve'), { code: 'NETWORK' });
+});
+
+test('a listed character is its own answer', async () => {
+  const character = { address: 'Sir Bob@coldeve', name: 'Sir Bob', level: 126 };
+  const { fetch } = stub(json(200, { character }));
+  assert.deepEqual(await createHub(HUB, fetch).directoryCharacter('Sir Bob@coldeve'), character);
 });

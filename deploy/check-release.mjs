@@ -1,7 +1,8 @@
 // A candidate release's own check, run on the VM before it goes live: the server answers its
 // health check and serves every page, with its stylesheet, script and assets, under a policy the
 // page keeps: no inline style or script, and nothing to call but the site and the hub the page
-// names.
+// names. The directory's pages ask search engines not to index them, and robots.txt keeps
+// crawlers out of them.
 import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -14,7 +15,14 @@ const PAGES = {
   '/operators/': 'Operators · Dereth Network',
   '/report/': 'Report a world · Dereth Network',
   '/characters/': 'Your characters · Dereth Network',
+  '/link/': 'Link a character · Dereth Network',
+  '/directory/': 'Directory · Dereth Network',
+  '/directory/character/': 'A character · Directory · Dereth Network',
+  '/directory/allegiance/': 'An allegiance · Directory · Dereth Network',
 };
+
+// The pages search engines are asked not to index, by their address's start.
+const NOT_INDEXED = '/directory/';
 
 const release = resolve(process.argv[2] ?? '.');
 const { createSite } = await import(pathToFileURL(resolve(release, 'server.mjs')).href);
@@ -77,12 +85,29 @@ try {
     assert.ok(html.includes(`<title>${title}</title>`), `${path} is not its page`);
     assert.match(html, /"\/assets\/[^"]+\.css"/, `${path} must reference its stylesheet`);
     keepsPolicy(path, html, page.headers.get('content-security-policy') ?? '');
+    if (path.startsWith(NOT_INDEXED)) {
+      assert.match(
+        html,
+        /<meta name="robots" content="noindex"/,
+        `${path} must ask not to be indexed`,
+      );
+      assert.equal(page.headers.get('x-robots-tag'), 'noindex', `${path} must be served noindex`);
+    } else {
+      assert.equal(page.headers.get('x-robots-tag'), null, `${path} must stay indexable`);
+    }
     for (const m of html.matchAll(/(?:src|href)="(\/[^"/][^"]*)"/g)) named.add(m[1]);
   }
   // Every file a page names (its stylesheet, script, images, fonts) is in the release.
   assert.ok(named.size > 0);
   for (const file of named)
     assert.equal((await get(file)).status, 200, `The release is missing ${file}`);
+  const robots = await get('/robots.txt');
+  assert.equal(robots.status, 200, 'The release has no robots.txt');
+  assert.match(
+    await robots.text(),
+    /^User-agent: \*\nDisallow: \/directory\/$/m,
+    'robots.txt must keep crawlers out of the directory',
+  );
   const bare = await (await get('/worlds')).text();
   assert.ok(bare.includes(`<title>${PAGES['/worlds/']}</title>`), 'A page answers without its /');
   assert.equal((await get('/no/such/page')).status, 200, 'Every page address gets the site');
@@ -90,7 +115,7 @@ try {
   assert.equal((await get('/../package.json')).status, 404, 'Nothing outside dist/ is served');
   assert.equal((await get('/%E0%A4%A')).status, 400, 'A malformed address is refused');
   console.log(
-    `Candidate release passed: health, ${Object.keys(PAGES).length} pages, their policy, stylesheets, scripts and assets.`,
+    `Candidate release passed: health, ${Object.keys(PAGES).length} pages, their policy, stylesheets, scripts and assets, and the directory kept out of search engines.`,
   );
 } finally {
   server.close();

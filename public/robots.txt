@@ -1,0 +1,3 @@
+# The character directory lists characters for the Dereth Network's players, not for the web.
+User-agent: *
+Disallow: /directory/

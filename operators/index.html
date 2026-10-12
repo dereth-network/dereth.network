@@ -38,8 +38,8 @@
       <section class="panel lead" aria-labelledby="h-ops">
         <h1 id="h-ops">Bring your world to the Dereth Network</h1>
         <p>
-          Register (or claim) your world, prove you run it, and put its key in your server. Players
-          choose to opt in individually with <code>/dn on</code>.
+          Register (or claim) your world, prove you run it, and put its key in your server. Each
+          character joins on its own, with <code>@dn on</code>.
         </p>
         <ol class="steps">
           <li>
@@ -74,7 +74,7 @@
           </li>
           <li>
             <b>Prove you run it</b>, with a token on a page on the world's own host, or with
-            <code>/dn verify</code> typed by an Admin in game.
+            <code>@dn verify</code> typed by an Admin in game.
           </li>
           <li>Once it's proven, the network turns on for the world by itself.</li>
         </ol>
@@ -82,11 +82,11 @@
           <summary><h2 id="h-opcmds">Operator commands</h2></summary>
           <dl class="rows cmds">
             <div>
-              <dt><code>/dn verify &lt;token&gt;</code></dt>
+              <dt><code>@dn verify &lt;token&gt;</code></dt>
               <dd>Admins only. Proves to the hub that the world is yours.</dd>
             </div>
             <div>
-              <dt><code>/dn admin block leafcull</code></dt>
+              <dt><code>@dn admin block leafcull</code></dt>
               <dd>
                 Sentinels and up can block a world or a single character (<code
                   >An Adventurer@leafcull</code
@@ -94,12 +94,27 @@
               </dd>
             </div>
             <div>
-              <dt><code>/dn admin unblock leafcull</code></dt>
+              <dt><code>@dn admin unblock leafcull</code></dt>
               <dd>Lift a block on a world or character.</dd>
             </div>
             <div>
-              <dt><code>/dn admin blocks | status</code></dt>
-              <dd>List blocks applied to this world.</dd>
+              <dt><code>@dn admin block</code></dt>
+              <dd>
+                With nothing after it, as <code>@dn admin unblock</code> too: show this world's
+                blocks and its link to the network.
+              </dd>
+            </div>
+            <div>
+              <dt><code>@dn admin global</code></dt>
+              <dd>Show which room carries cross-world Global chat now.</dd>
+            </div>
+            <div>
+              <dt><code>@dn admin global trade</code></dt>
+              <dd>
+                Sentinels and up can move cross-world Global chat to another of the world's rooms
+                (<code>general</code>, <code>trade</code>, <code>lfg</code>, <code>roleplay</code>,
+                or <code>off</code> for none).
+              </dd>
             </div>
           </dl>
         </details>
@@ -188,6 +203,18 @@
           <span>Show closed reports too</span>
         </label>
         <div id="review-list"></div>
+      </section>
+
+      <section class="panel" id="hub-settings" aria-labelledby="h-hub-settings" hidden>
+        <h2 id="h-hub-settings">Hub settings</h2>
+        <details class="fold">
+          <summary>Basic Settings</summary>
+          <div id="hub-rules"></div>
+        </details>
+        <details class="fold">
+          <summary>Discord Settings</summary>
+          <div id="hub-discord"></div>
+        </details>
       </section>
 
       <footer class="foot">

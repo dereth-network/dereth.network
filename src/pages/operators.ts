@@ -1,8 +1,9 @@
 // The operators page: sign in with Discord, then register or claim a world, prove you run it,
-// turn the network on or off for it, get it a new key, follow your reports, and, for the hub's
-// admins, review everyone's.
+// turn the network on or off for it, get it a new key, mirror its rooms into your Discord server,
+// follow your reports, and, for the hub's admins, review everyone's and keep the hub's settings.
 import {
   append,
+  build,
   busy,
   byId,
   copyField,
@@ -14,6 +15,23 @@ import {
   pageHub,
   takeQuery,
 } from '../network/dom.ts';
+import {
+  discordFeatures,
+  globalRoomView,
+  hubDiscordView,
+  keepAfterRefusal,
+  mirrorNetworkRoom,
+  mirrorRefusal,
+  mirrorWorldRoom,
+  roomName,
+  setAvatar,
+  setGlobalRoom,
+  stopNetworkMirror,
+  stopWorldMirror,
+  takeWorldMirror,
+  worldMirrorsView,
+} from '../network/discord.ts';
+import type { MirrorOutcome, Said } from '../network/discord.ts';
 import {
   APPROVAL_TEXT,
   REPORT_REASONS,
@@ -32,13 +50,23 @@ import { HubError } from '../network/hub.ts';
 import type {
   Approval,
   AuditEvent,
+  DiscordAdmin,
   HubConfig,
+  HubSettingName,
+  HubSettings,
   Operator,
   Report,
   Verification,
   World,
+  WorldMirrors,
 } from '../network/hub.ts';
 import { registrationForm } from '../network/registration-form.ts';
+import {
+  saveSetting,
+  settingEventText,
+  settingsRefusal,
+  settingsView,
+} from '../network/settings.ts';
 
 const hub = pageHub();
 const notices = byId('notices');
@@ -49,6 +77,7 @@ const sections = {
   claim: byId('claim'),
   reports: byId('reports'),
   review: byId('review'),
+  hubSettings: byId('hub-settings'),
 };
 const worldsBox = byId('worlds');
 
@@ -59,6 +88,11 @@ const shown = new Map<string, { key?: string; verification?: Verification }>();
 const messages = new Map<string, HTMLElement>();
 const audits = new Map<string, AuditEvent[]>();
 const historyOpen = new Set<string>();
+// Each world's mirrors into Discord, read when its part is first opened, the last thing said
+// about them, and the parts left open.
+const worldMirrors = new Map<string, WorldMirrors>();
+const mirrorsSaid = new Map<string, Said>();
+const mirrorsOpen = new Set<string>();
 /** The world cards left open, so a card redrawn after an action stays as it was. */
 const cardsOpen = new Set<string>();
 let worlds: World[] = [];
@@ -176,6 +210,8 @@ function worldCard(world: World): HTMLElement {
     needsProof(world) && s !== 'locked' ? proofPart(world, got?.verification) : null,
     live ? networkPart(world) : null,
     live ? keyRotatePart(world) : null,
+    live && discordFeatures(config).mirrors ? globalPart(world) : null,
+    live && discordFeatures(config).mirrors ? discordPart(world) : null,
     changePart(world),
     historyPart(world),
   );
@@ -345,7 +381,7 @@ function proofPart(world: World, verification: Verification | undefined): HTMLEl
       {},
       'Or, with the world running with its key in place, type this as an Admin character in game (at the server console, the same without the slash):',
     ),
-    copyField(verification.game ?? `/dn verify ${verification.token}`, 'The command to type'),
+    copyField(verification.game ?? `@dn verify ${verification.token}`, 'The command to type'),
     recheck,
   );
   return part;
@@ -388,7 +424,7 @@ function networkPart(world: World): HTMLElement {
         'p',
         {},
         'On the network: its players can join with ',
-        h('code', {}, '/dn on'),
+        h('code', {}, '@dn on'),
         '. ',
         proven,
       ),
@@ -556,6 +592,154 @@ function historyPart(world: World): HTMLElement {
   details.addEventListener('toggle', () => (details.open ? opened() : historyOpen.delete(slug)));
   if (historyOpen.has(slug)) opened();
   return h('div', { class: 'part' }, details);
+}
+
+/** Where the world carries cross-world Global chat, read with its mirrors as the card is drawn,
+ * and saved as soon as another room is picked; the card is drawn again after, since the Discord
+ * mirrors show the room it took over. Nothing on a hub that keeps no such room. */
+function globalPart(world: World): HTMLElement {
+  const slug = world.slug;
+  const part = h('div', { class: 'part' });
+  part.hidden = true;
+  const show = (state: WorldMirrors) => {
+    const view = build(globalRoomView(state));
+    if (!view) return;
+    fill(part, view);
+    part.hidden = false;
+    const select = part.querySelector<HTMLSelectElement>('select[name="room"]')!;
+    select.addEventListener('change', async () => {
+      select.disabled = true;
+      const outcome = await setGlobalRoom(hub, slug, select.value, state);
+      if (signedOutError(outcome.error)) return signedOut();
+      worldMirrors.set(slug, outcome.state);
+      messages.set(slug, notice(outcome.said.kind, outcome.said.text));
+      redraw(slug);
+    });
+  };
+  const known = worldMirrors.get(slug);
+  if (known) show(known);
+  else
+    void hub
+      .worldMirrors(slug)
+      .then((state) => {
+        worldMirrors.set(slug, state);
+        show(state);
+      })
+      .catch(() => {});
+  return part;
+}
+
+/** The world's rooms mirrored into Discord: read when first opened, then kept while the page is
+ * open, each change redrawing the part alone. */
+function discordPart(world: World): HTMLElement {
+  const slug = world.slug;
+  const body = h('div', {});
+  const details = h(
+    'details',
+    { open: mirrorsOpen.has(slug) },
+    h('summary', {}, 'Discord mirrors'),
+    body,
+  );
+  const show = () => {
+    const state = worldMirrors.get(slug);
+    if (!state) return;
+    // Said once: a card drawn again later starts without it.
+    const said = h('div', { class: 'notices' }, saidNotice(mirrorsSaid.get(slug)));
+    mirrorsSaid.delete(slug);
+    fill(body, said, build(worldMirrorsView(world, state)));
+    const settle = (outcome: MirrorOutcome<WorldMirrors>, field?: HTMLInputElement) =>
+      settled(outcome, said, field, () => {
+        worldMirrors.set(slug, outcome.state);
+        mirrorsSaid.set(slug, outcome.said);
+        show();
+        // An admin's list of every world's mirrors holds this one too.
+        if (operator?.admin) void loadHubDiscord();
+      });
+    wireForms(body, 'mirror', async (form, submit) => {
+      const room = form.dataset.room ?? '';
+      const field = targetOf(form);
+      const typed = field.value;
+      settle(await busy(submit, () => mirrorWorldRoom(hub, slug, room, typed, state)), field);
+    });
+    wireButtons(body, 'stop', async (b) => {
+      const room = b.dataset.room ?? '';
+      if (
+        !confirm(
+          `Stop mirroring ${roomName(room)} into Discord? Its lines stop reaching the channel until you mirror it again.`,
+        )
+      )
+        return;
+      settle(await busy(b, () => stopWorldMirror(hub, slug, room, state)));
+    });
+  };
+  const load = async () => {
+    fill(body, h('p', { class: 'muted' }, 'Loading…'));
+    try {
+      worldMirrors.set(slug, await hub.worldMirrors(slug));
+      show();
+    } catch (error) {
+      if (signedOutError(error)) return signedOut();
+      fill(body, notice('error', mirrorRefusal(error)));
+    }
+  };
+  // A details element drawn open also fires its toggle event, so the mirrors are read once.
+  let started = false;
+  const opened = () => {
+    mirrorsOpen.add(slug);
+    if (started) return;
+    started = true;
+    if (worldMirrors.has(slug)) show();
+    else void load();
+  };
+  details.addEventListener('toggle', () => (details.open ? opened() : mirrorsOpen.delete(slug)));
+  if (mirrorsOpen.has(slug)) opened();
+  return h('div', { class: 'part' }, details);
+}
+
+function saidNotice(said: Said | undefined): HTMLElement | null {
+  return said ? notice(said.kind, said.text) : null;
+}
+
+/** After an action on mirrors or on the hub's settings: a lapsed session signs out; a refusal is
+ * said in `said`, the forms left as typed but for `field`, which keeps a channel and nothing else
+ * (never a webhook's address); anything else is kept by `done`, which draws the part again. */
+function settled<S>(
+  outcome: MirrorOutcome<S>,
+  said: HTMLElement,
+  field: HTMLInputElement | undefined,
+  done: () => void,
+) {
+  if (signedOutError(outcome.error)) return signedOut();
+  if (outcome.said.kind !== 'error') return done();
+  if (field) field.value = keepAfterRefusal(field.value);
+  fill(said, notice('error', outcome.said.text));
+  said.scrollIntoView({ block: 'nearest' });
+}
+
+/** A mirror form's field for where the mirror goes. */
+function targetOf(form: HTMLFormElement): HTMLInputElement {
+  return form.querySelector<HTMLInputElement>('input[name="target"]')!;
+}
+
+/** Wires each form marked `act` in `box`: `run` is given the form and its submit button. */
+function wireForms(
+  box: HTMLElement,
+  act: string,
+  run: (form: HTMLFormElement, submit: HTMLButtonElement) => Promise<void>,
+) {
+  for (const form of box.querySelectorAll<HTMLFormElement>(`form[data-act="${act}"]`)) {
+    const submit = form.querySelector<HTMLButtonElement>('button[type=submit]')!;
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      void run(form, submit);
+    });
+  }
+}
+
+/** Wires each button marked `act` in `box`. */
+function wireButtons(box: HTMLElement, act: string, run: (b: HTMLButtonElement) => Promise<void>) {
+  for (const b of box.querySelectorAll<HTMLButtonElement>(`button[data-act="${act}"]`))
+    b.addEventListener('click', () => void run(b));
 }
 
 function auditRow(event: AuditEvent): HTMLElement {
@@ -753,6 +937,206 @@ function reviewItem(report: Report): HTMLElement {
   return reportItem(report, extra);
 }
 
+// The hub's settings, for its admins.
+
+// The last thing said about the hub's Discord settings, and its Discord log, read when first
+// opened after each change.
+let hubSaid: Said | undefined;
+const hubLog: KeptLog = { events: null, open: false };
+
+function loadHubSettings() {
+  sections.hubSettings.hidden = false;
+  void loadHubRules();
+  void loadHubDiscord();
+}
+
+async function loadHubDiscord() {
+  const box = byId('hub-discord');
+  if (!discordFeatures(config).mirrors) {
+    fill(
+      box,
+      h(
+        'p',
+        { class: 'muted' },
+        'This hub has no Discord bot, so it mirrors no room into Discord and carries no tell there.',
+      ),
+    );
+    return;
+  }
+  fill(box, h('p', { class: 'muted' }, 'Loading…'));
+  try {
+    showHubDiscord(await hub.discordAdmin());
+  } catch (error) {
+    if (signedOutError(error)) return signedOut();
+    fill(box, notice('error', mirrorRefusal(error)));
+  }
+}
+
+/** The hub's Discord settings as they stand, each change drawing them again. */
+function showHubDiscord(state: DiscordAdmin) {
+  const box = byId('hub-discord');
+  const said = h('div', { class: 'notices' }, saidNotice(hubSaid));
+  hubSaid = undefined;
+  // Its folds stay as they were across each redraw.
+  const folds = () => box.querySelectorAll<HTMLDetailsElement>('details[data-fold]');
+  const open = new Set([...folds()].filter((d) => d.open).map((d) => d.dataset.fold));
+  fill(box, said, build(hubDiscordView(state)), hubLogPart());
+  for (const d of folds()) d.open = open.has(d.dataset.fold);
+  const settle = (outcome: MirrorOutcome<DiscordAdmin>, field?: HTMLInputElement) =>
+    settled(outcome, said, field, () => {
+      hubSaid = outcome.said;
+      // The log has something new to read.
+      hubLog.events = null;
+      showHubDiscord(outcome.state);
+    });
+  wireForms(box, 'mirror', async (form, submit) => {
+    const room = form.dataset.room ?? '';
+    const field = targetOf(form);
+    const typed = field.value;
+    settle(await busy(submit, () => mirrorNetworkRoom(hub, room, typed, state)), field);
+  });
+  wireForms(box, 'mirror-channel', async (form, submit) => {
+    const room = form.querySelector<HTMLInputElement>('input[name="room"]')!.value;
+    const field = targetOf(form);
+    const typed = field.value;
+    settle(await busy(submit, () => mirrorNetworkRoom(hub, room, typed, state)), field);
+  });
+  wireButtons(box, 'stop', async (b) => {
+    const room = b.dataset.room ?? '';
+    if (!confirm(`Stop the network’s mirror of ${roomName(room)}?`)) return;
+    settle(await busy(b, () => stopNetworkMirror(hub, room, state)));
+  });
+  wireButtons(box, 'take-away', async (b) => {
+    const slug = b.dataset.world ?? '';
+    const room = b.dataset.room ?? '';
+    if (
+      !confirm(
+        `Take away @${slug}’s mirror of ${roomName(room)}? Its lines stop reaching that channel at once.`,
+      )
+    )
+      return;
+    const outcome = await busy(b, () => takeWorldMirror(hub, slug, room, state));
+    settle(outcome);
+    // One of the admin's own worlds is read again.
+    if (outcome.said.kind !== 'error' && worldMirrors.delete(slug)) redraw(slug);
+  });
+  wireForms(box, 'avatar', async (form, submit) => {
+    const typed = form.querySelector<HTMLInputElement>('input[name="url"]')!.value;
+    settle(await busy(submit, () => setAvatar(hub, typed, state)));
+  });
+  wireButtons(box, 'avatar-clear', async (b) => {
+    settle(await busy(b, () => setAvatar(hub, '', state)));
+  });
+}
+
+/** One of the hub's own logs, as the page keeps it: what was read (none until it is opened, and
+ * again after each change), and whether it is open. */
+interface KeptLog {
+  events: AuditEvent[] | null;
+  open: boolean;
+}
+
+/** A log of the hub's own, read with `read` when its fold is opened, each entry in `text`'s words
+ * and each refusal in `refusal`'s. */
+function logPart(
+  title: string,
+  kept: KeptLog,
+  read: () => Promise<AuditEvent[]>,
+  text: (event: AuditEvent) => string,
+  refusal: (error: unknown) => string,
+): HTMLElement {
+  const body = h('div', {});
+  const details = h('details', { class: 'fold', open: kept.open }, h('summary', {}, title), body);
+  const row = (event: AuditEvent) =>
+    h('tr', {}, h('td', {}, when(event.at)), h('td', {}, text(event)));
+  const show = (events: AuditEvent[]) =>
+    fill(
+      body,
+      events.length === 0
+        ? h('p', { class: 'muted' }, 'Nothing yet.')
+        : h('table', { class: 'audit' }, h('tbody', {}, ...events.map(row))),
+    );
+  // A details element drawn open also fires its toggle event, so the log is read once.
+  let started = false;
+  const opened = async () => {
+    kept.open = true;
+    if (started) return;
+    started = true;
+    if (kept.events) return show(kept.events);
+    fill(body, h('p', { class: 'muted' }, 'Loading…'));
+    try {
+      kept.events = await read();
+      show(kept.events);
+    } catch (error) {
+      if (signedOutError(error)) return signedOut();
+      fill(body, notice('error', refusal(error)));
+    }
+  };
+  details.addEventListener('toggle', () => {
+    if (details.open) void opened();
+    else kept.open = false;
+  });
+  if (kept.open) void opened();
+  return details;
+}
+
+/** The hub's own Discord log, read when opened. */
+function hubLogPart(): HTMLElement {
+  return logPart(
+    'Discord history',
+    hubLog,
+    async () => (await hub.discordLog()).events,
+    (event) => auditText(event, operator?.id ?? null),
+    (error) => mirrorRefusal(error),
+  );
+}
+
+// The last thing said about the hub's own settings, and their log, read when first opened after
+// each change.
+let rulesSaid: Said | undefined;
+const rulesLog: KeptLog = { events: null, open: false };
+
+async function loadHubRules() {
+  const box = byId('hub-rules');
+  fill(box, h('p', { class: 'muted' }, 'Loading…'));
+  try {
+    showHubRules(await hub.hubSettings());
+  } catch (error) {
+    if (signedOutError(error)) return signedOut();
+    fill(box, notice('error', settingsRefusal(error)));
+  }
+}
+
+/** The hub's own settings as they stand, each change drawing them again. */
+function showHubRules(state: HubSettings) {
+  const box = byId('hub-rules');
+  const said = h('div', { class: 'notices' }, saidNotice(rulesSaid));
+  rulesSaid = undefined;
+  fill(
+    box,
+    said,
+    build(settingsView(state)),
+    logPart(
+      'Settings history',
+      rulesLog,
+      async () => (await hub.hubSettingsLog()).events,
+      (event) => settingEventText(event, operator?.id ?? null),
+      (error) => settingsRefusal(error),
+    ),
+  );
+  wireForms(box, 'setting', async (form, submit) => {
+    const name = form.dataset.name as HubSettingName;
+    const typed = form.querySelector<HTMLInputElement>('input[name="value"]')!.value;
+    const outcome = await busy(submit, () => saveSetting(hub, name, typed, state));
+    settled(outcome, said, undefined, () => {
+      rulesSaid = outcome.said;
+      // The log has something new to read.
+      rulesLog.events = null;
+      showHubRules(outcome.state);
+    });
+  });
+}
+
 // The page.
 
 async function main() {
@@ -818,7 +1202,10 @@ async function main() {
     fill(worldsBox, errorNotice(error));
   }
   void loadReports();
-  if (operator.admin) void loadReview();
+  if (operator.admin) {
+    void loadReview();
+    loadHubSettings();
+  }
   if (claim && isRegistrySlug(claim)) {
     takeQuery('claim');
     openClaim(claim);

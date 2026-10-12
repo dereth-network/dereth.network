@@ -34,8 +34,18 @@ export function contentSecurityPolicy(hubUrl = DEFAULT_HUB_URL) {
   return `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' ${hub.origin}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'`;
 }
 
-// Pages that moved, by their old address (without its slash), to where they went.
-export const MOVED = { '/link': '/characters/' };
+// Pages that moved, by their old address (without its slash), to where they went. None has now:
+// `/link/`, which the hub names in every link it gives a player in game, is a page of its own.
+export const MOVED = {};
+
+// The pages search engines are asked not to index: the character directory, whose players listed
+// their characters for the network, not for the web. robots.txt keeps crawlers out of them too.
+export const NOT_INDEXED = '/directory';
+
+/** Whether a path is one of the pages search engines are asked not to index. */
+export function notIndexed(path) {
+  return path === NOT_INDEXED || path.startsWith(`${NOT_INDEXED}/`);
+}
 
 // The headers every answer carries.
 export function securityHeaders(hubUrl = DEFAULT_HUB_URL) {
@@ -49,7 +59,8 @@ export function securityHeaders(hubUrl = DEFAULT_HUB_URL) {
 
 // The same rules for a static host that reads `_headers` and `_redirects` (Cloudflare Pages):
 // every answer's headers, Vite's hashed files cached for a year (anything else is checked on each
-// visit, as the host does unless told otherwise), and the moved pages, with or without the slash.
+// visit, as the host does unless told otherwise), the directory's pages kept out of search
+// engines, and the moved pages, with or without the slash.
 export function staticHostFiles(hubUrl = DEFAULT_HUB_URL) {
   const headers = Object.entries(securityHeaders(hubUrl)).map(([k, v]) => `  ${k}: ${v}`);
   const redirects = Object.entries(MOVED).flatMap(([from, to]) => [
@@ -62,6 +73,10 @@ export function staticHostFiles(hubUrl = DEFAULT_HUB_URL) {
       ...headers,
       '/assets/*',
       '  Cache-Control: public, max-age=31536000, immutable',
+      NOT_INDEXED,
+      '  X-Robots-Tag: noindex',
+      `${NOT_INDEXED}/*`,
+      '  X-Robots-Tag: noindex',
       '',
     ].join('\n'),
     _redirects: [...redirects, ''].join('\n'),
@@ -75,8 +90,13 @@ export function createSite({
 }) {
   const webRoot = resolve(root);
   const headers = securityHeaders(hubUrl);
-  const send = (response, status, type, body, cache = 'no-cache') => {
-    response.writeHead(status, { ...headers, 'Content-Type': type, 'Cache-Control': cache });
+  const send = (response, status, type, body, cache = 'no-cache', extra = {}) => {
+    response.writeHead(status, {
+      ...headers,
+      ...extra,
+      'Content-Type': type,
+      'Cache-Control': cache,
+    });
     response.end(body);
   };
   const serve = async (request, response) => {
@@ -99,8 +119,7 @@ export function createSite({
       );
     if (request.method !== 'GET' && request.method !== 'HEAD')
       return send(response, 405, TYPES['.txt'], 'Method not allowed');
-    // A page that moved, kept for the addresses already out there: the hub names /link/ in
-    // every link code it gives a player in game.
+    // A page that moved, kept for the addresses already out there.
     const moved = MOVED[path.replace(/\/$/, '')];
     if (moved) {
       response.writeHead(302, {
@@ -122,7 +141,8 @@ export function createSite({
               ? 'public, max-age=31536000, immutable'
               : 'no-cache';
             const type = TYPES[extname(candidate).toLowerCase()] ?? 'application/octet-stream';
-            return send(response, 200, type, await readFile(candidate), cache);
+            const robots = notIndexed(path) ? { 'X-Robots-Tag': 'noindex' } : {};
+            return send(response, 200, type, await readFile(candidate), cache, robots);
           }
         } catch {}
       }

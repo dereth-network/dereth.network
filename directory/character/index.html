@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0c0a10" />
+    <meta name="robots" content="noindex" />
+    <meta
+      name="description"
+      content="A character on the Dereth Network: its profile and its allegiance."
+    />
+    <meta name="dereth-hub" content="%DERETH_HUB_URL%" />
+    <link rel="icon" href="/media/art/dereth-icon.png" type="image/png" />
+    <link rel="preload" href="/media/fonts/Cinzel-var.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="stylesheet" href="/src/style.css" />
+    <link rel="stylesheet" href="/src/network.css" />
+    <script type="module" src="/src/pages/directory-character.ts"></script>
+    <title>A character · Directory · Dereth Network</title>
+  </head>
+  <body>
+    <div class="vista" aria-hidden="true"><img src="/media/art/obsidian-bridge.webp" alt="" /></div>
+
+    <div class="page">
+      <header class="top">
+        <a class="lockup" href="/" aria-label="Dereth Network">
+          <img src="/media/art/emblem.png" alt="" width="60" height="60" />
+          <span class="word">DERETH<br />NETWORK</span>
+        </a>
+        <nav class="rail" aria-label="Site">
+          <a href="https://play.dereth.network/?server=https://retail.dereth.network/status"
+            >Play</a
+          >
+          <a href="/network/" aria-current="true">Network</a>
+          <a href="https://github.com/dereth-network/dereth/releases">Download</a>
+          <a href="https://github.com/dereth-network/dereth">Source</a>
+        </nav>
+      </header>
+
+      <div id="notices" class="notices" aria-live="polite"></div>
+      <div id="profile" aria-live="polite" aria-busy="true"></div>
+
+      <footer class="foot">
+        <span
+          ><a href="https://github.com/dereth-network/dereth">dereth-network/dereth</a> |
+          <a href="/characters/">Your characters</a></span
+        >
+        <span
+          >Dereth is an independent project, not affiliated with or endorsed by any current rights
+          holder.</span
+        >
+      </footer>
+    </div>
+  </body>
+</html>

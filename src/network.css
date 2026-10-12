@@ -35,7 +35,14 @@
 }
 /* A button with a line under it, saying who it's for. */
 .lead .row:has(.cta) {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 14px 28px;
+}
+@media (max-width: 560px) {
+  .lead .row:has(.cta) {
+    grid-template-columns: 1fr;
+  }
 }
 .cta {
   display: grid;
@@ -59,6 +66,30 @@
   font: 600 16px var(--display);
   letter-spacing: 0.08em;
   color: var(--text);
+}
+/* Where a world carries cross-world Global chat: its label, then the room. */
+.global-room {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.global-room b {
+  font-weight: 600;
+}
+/* How to set a channel up for a mirror: small headings over each way's steps. */
+.setup {
+  margin: 14px 0 18px;
+}
+.setup h4 {
+  margin: 12px 0 4px;
+  font: 600 14px var(--display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+}
+.setup h4:first-child {
+  margin-top: 0;
 }
 .panel ul.bullets + p,
 .panel .rows + p {
@@ -128,16 +159,6 @@
   margin: 14px 0 -8px;
   font-size: 15px;
   color: var(--muted);
-}
-
-/* The worlds on the network now, on the network page. */
-.live {
-  margin-top: 16px;
-  font-size: 17px;
-  color: var(--muted);
-}
-.live .names {
-  color: var(--text);
 }
 
 /* Steps, numbered in gold. */
@@ -545,6 +566,60 @@ input[aria-invalid='true'] {
 .op-world .inline input {
   flex: 1 1 18rem;
 }
+/* A room's mirror into Discord: where it goes and its buttons, on one line where they fit. */
+.mirror-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+}
+.mirror-form input {
+  flex: 1 1 18rem;
+}
+.mirror-form input[name='room'] {
+  flex: 0 1 12rem;
+}
+/* One of the hub's settings: its value and Save, on one line. */
+.setting-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+}
+.setting-form input {
+  flex: 0 1 7rem;
+  width: 7rem;
+}
+.setting-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+}
+.setting-label b {
+  font-weight: 600;
+}
+.setting-form + .small {
+  margin: 4px 0 0;
+}
+/* A world's mirror on the hub's settings: its facts, and Take away at the right. */
+.world-mirror {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+.world-mirror > :not(.take-away) {
+  grid-column: 1;
+}
+.world-mirror > .take-away {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+}
+.fold .steps {
+  margin: 4px 0 10px;
+}
 details > summary {
   cursor: pointer;
   font: 600 14px var(--display);
@@ -617,6 +692,15 @@ details[open] > summary {
 }
 .fold > summary {
   font-size: 17px;
+}
+/* A fold inside a fold, and the labels in it, a size down. */
+.fold .fold > summary {
+  font-size: 14px;
+}
+.fold .setting-label b,
+.fold .badges b,
+.fold .global-room b {
+  font-size: 16px;
 }
 .fold p:last-child {
   margin-bottom: 0;
@@ -693,5 +777,156 @@ details[open] > summary {
   }
   .op-world {
     padding: 14px 12px;
+  }
+}
+
+/* The directory: its search, a character's sheet, and an allegiance's members. */
+.directory-search {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.directory-search .wide {
+  grid-column: 1 / -1;
+}
+.directory-search .buttons {
+  margin: 0;
+}
+.listing .world-head h3 a {
+  color: var(--text);
+}
+.profile {
+  display: grid;
+  gap: 22px;
+  min-width: 0;
+}
+.profile .lead h1 {
+  overflow-wrap: anywhere;
+}
+/* A character's facts sit as close as its stats tables. */
+.profile .rows div {
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: 12px;
+  padding: 5px 0;
+}
+.profile .rows dd {
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 760px) {
+  .profile .rows div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+.profile .meta {
+  margin: 0 0 4px;
+  color: var(--muted);
+}
+.tell {
+  margin-top: 18px;
+}
+.tell p {
+  margin: 0 0 6px;
+}
+.sheet {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  align-items: start;
+  gap: 8px 28px;
+  margin-bottom: 8px;
+}
+/* Experience, unassigned experience and skill credits: one row while it fits. */
+.figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 36px;
+  margin: 8px 0 12px;
+}
+.figures dt {
+  font: 600 13px var(--display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.figures dd {
+  margin: 2px 0 0;
+  font-variant-numeric: tabular-nums;
+}
+h2 + .fold {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+.fold > .stats {
+  margin-top: 6px;
+}
+.fold > .stats :is(th, td):last-child {
+  width: 8rem;
+}
+.stats {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 17px;
+}
+.stats caption {
+  padding: 6px 0;
+  text-align: left;
+  font: 600 15px var(--display);
+  letter-spacing: 0.06em;
+  color: var(--gold-bright);
+}
+.stats th,
+.stats td {
+  padding: 5px 8px 5px 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  font-weight: 400;
+}
+.stats thead th {
+  font: 600 13px var(--display);
+  letter-spacing: 0.08em;
+  color: var(--faint);
+}
+.stats tbody th {
+  color: var(--text);
+}
+.stats td {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.members,
+.augs {
+  margin: 6px 0 12px;
+  padding-left: 1.2em;
+  columns: 2 16rem;
+  column-gap: 28px;
+}
+.members li,
+.augs li {
+  break-inside: avoid;
+  overflow-wrap: anywhere;
+}
+a.badge {
+  text-decoration: none;
+}
+a.badge:hover {
+  color: #fff;
+  border-color: currentColor;
+}
+.char-item .listed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: 4px;
+}
+.char-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 760px) {
+  .directory-search {
+    grid-template-columns: 1fr;
   }
 }

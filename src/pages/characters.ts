@@ -1,6 +1,6 @@
-// Your characters: the signed-in person's linked characters (each can be unlinked, and one is
-// linked with the code `/dn link` gave it in game), whether they're shown as one person, its
-// friends, and forgetting all of it.
+// Your characters: the signed-in person's linked characters (each can be unlinked; one is linked
+// with the link `@dn link` gives it in game, on the link page), where each stands in the
+// directory, its friends, how tells reach its Discord, and forgetting all of it.
 import {
   append,
   busy,
@@ -13,32 +13,30 @@ import {
   pageHub,
   takeQuery,
 } from '../network/dom.ts';
-import { explain, readLinkCode, when } from '../network/format.ts';
+import { characterHref, listingText } from '../network/directory.ts';
+import { discordFeatures } from '../network/discord.ts';
+import { explain, when } from '../network/format.ts';
 import { HubError } from '../network/hub.ts';
 import type { HubConfig, Person } from '../network/hub.ts';
 
 const hub = pageHub();
 const notices = byId('notices');
 const signin = byId('signin');
-const panels = ['home', 'alts', 'friends', 'forget'].map((id) => byId(id));
-const altsForm = byId<HTMLFormElement>('alts-form');
-const altsSave = byId<HTMLButtonElement>('alts-save');
+const panels = ['home', 'friends', 'forget'].map((id) => byId(id));
+// The panel shown only on a hub that carries tells into Discord.
+const discordPanel = byId('discord');
 const sure = byId<HTMLInputElement>('forget-sure');
 const forgetGo = byId<HTMLButtonElement>('forget-go');
-const linkForm = byId<HTMLFormElement>('link-form');
-const code = byId<HTMLInputElement>('code');
-const hint = byId('code-hint');
-const linkSend = byId<HTMLButtonElement>('link-send');
-const hintStart = [...hint.childNodes].map((n) => n.cloneNode(true));
 let config: HubConfig | null = null;
 
 function showSignIn() {
   for (const p of panels) p.hidden = true;
+  discordPanel.hidden = true;
   if (config) byId<HTMLAnchorElement>('signin-link').href = hub.signInUrl(config, herePath());
   signin.hidden = false;
 }
 
-/** A refusal: a lapsed session shows the sign-in again. */
+/** A refusal, in the hub's words: a lapsed session shows the sign-in again. */
 function refused(error: unknown) {
   if (error instanceof HubError && error.status === 401) showSignIn();
   fill(notices, errorNotice(error));
@@ -64,6 +62,8 @@ function render(person: Person) {
             refused(error);
           }
         });
+        const listed = c.listing === 'listed';
+        const state = listingText(c.listing);
         return h(
           'div',
           { class: 'char-item' },
@@ -77,13 +77,23 @@ function render(person: Person) {
               h('span', { class: 'muted' }, ` on ${c.world.name ?? c.world.slug}`),
             ),
             h('p', { class: 'when' }, `Linked ${when(c.linkedAt)}`),
+            h(
+              'p',
+              { class: 'listed' },
+              listed
+                ? h(
+                    'a',
+                    { class: `badge ${state.tone}`, href: characterHref(c.address) },
+                    state.text,
+                  )
+                : h('span', { class: `badge ${state.tone}` }, state.text),
+            ),
           ),
-          unlink,
+          h('div', { class: 'char-actions' }, unlink),
         );
       }),
     );
   }
-  byId<HTMLInputElement>(person.alts === 'shown' ? 'alts-shown' : 'alts-hidden').checked = true;
   const friends = byId('friends-list');
   if (person.friends.length === 0) {
     fill(friends, h('p', { class: 'empty' }, 'No friends yet.'));
@@ -112,6 +122,7 @@ function render(person: Person) {
       }),
     );
   }
+  discordPanel.hidden = !discordFeatures(config).tells;
   signin.hidden = true;
   for (const p of panels) p.hidden = false;
 }
@@ -121,56 +132,6 @@ async function refresh() {
   if (!person) return showSignIn();
   render(person);
 }
-
-function resetHint() {
-  hint.className = 'hint';
-  hint.replaceChildren(...hintStart.map((n) => n.cloneNode(true)));
-}
-
-code.addEventListener('input', () => {
-  const read = readLinkCode(code.value);
-  code.setAttribute('aria-invalid', String(code.value.trim() !== '' && read === null));
-  if (read) {
-    hint.className = 'hint good';
-    hint.textContent = `Linking with ${read}.`;
-  } else resetHint();
-});
-
-linkForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const read = readLinkCode(code.value);
-  if (!read) {
-    fill(
-      notices,
-      notice('error', 'That isn’t a link code: eight letters and numbers, like K7QD-2MXP.'),
-    );
-    return;
-  }
-  fill(notices);
-  try {
-    const linked = await busy(linkSend, () => hub.linkCharacter(read));
-    linkForm.reset();
-    resetHint();
-    const world = linked.character.world.name ?? linked.character.world.slug;
-    render(linked.person);
-    append(notices, notice('ok', `${linked.character.address}, on ${world}, is linked.`));
-  } catch (error) {
-    refused(error);
-  }
-});
-
-altsForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const shown = byId<HTMLInputElement>('alts-shown').checked;
-  fill(notices);
-  try {
-    const { person } = await busy(altsSave, () => hub.setAlts(shown));
-    render(person);
-    append(notices, notice('ok', shown ? 'Your alts are shown now.' : 'Your alts are hidden now.'));
-  } catch (error) {
-    refused(error);
-  }
-});
 
 sure.addEventListener('change', () => {
   forgetGo.disabled = !sure.checked;
@@ -183,7 +144,13 @@ forgetGo.addEventListener('click', async () => {
     await busy(forgetGo, () => hub.forgetPerson());
     sure.checked = false;
     forgetGo.disabled = true;
-    append(notices, notice('ok', 'Forgotten.'));
+    append(
+      notices,
+      notice(
+        'ok',
+        'Forgotten. Your characters are off the Dereth Network, or will be when their worlds are next online.',
+      ),
+    );
     await refresh();
   } catch (error) {
     refused(error);

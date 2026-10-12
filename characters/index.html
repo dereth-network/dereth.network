@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#0c0a10" />
     <meta
       name="description"
-      content="Your Asheron's Call characters linked to your Discord account on the Dereth Network: unlink them, and choose whether anyone may learn they're one person."
+      content="Your Asheron's Call characters linked to your Discord account on the Dereth Network: where each stands in the directory, unlinking them, and your friends."
     />
     <meta name="dereth-hub" content="%DERETH_HUB_URL%" />
     <link rel="icon" href="/media/art/dereth-icon.png" type="image/png" />
@@ -40,7 +40,7 @@
       <section class="panel lead" aria-labelledby="h-chars">
         <h1 id="h-chars">Your characters</h1>
         <div id="signin" hidden>
-          <p>Sign in with Discord to manage your linked characters.</p>
+          <p>Sign in with Discord to see your linked characters.</p>
           <div class="buttons">
             <a class="btn lit" id="signin-link" href="/characters/">Sign in with Discord</a>
           </div>
@@ -53,70 +53,42 @@
           <details class="topic" open>
             <summary><h2 id="h-linked">Linked characters</h2></summary>
             <p class="muted">
-              Use <code>/dn link</code> while logged in to a world on the Dereth Network to start.
+              To link a character, type <code>@dn link</code> in game while you're on the Dereth
+              Network, and open the link it gives you. Keep the link to yourself.
             </p>
             <div id="characters"></div>
-            <form class="form" id="link-form">
-              <label class="field">
-                <span>Link a character</span>
-                <input
-                  type="text"
-                  id="code"
-                  name="code"
-                  required
-                  autocomplete="one-time-code"
-                  spellcheck="false"
-                  maxlength="16"
-                  placeholder="K7QD-2MXP"
-                />
-                <span class="hint" id="code-hint"
-                  >The code from <code>/dn link</code>, good for ten minutes. Give it to nobody
-                  else.</span
-                >
-              </label>
-              <div class="buttons">
-                <button class="btn lit" type="submit" id="link-send">Link</button>
-              </div>
-            </form>
           </details>
         </div>
       </section>
 
-      <section class="panel" id="alts" aria-labelledby="h-alts" hidden>
-        <h2 id="h-alts">Privacy</h2>
-        <form class="form" id="alts-form">
-          <label class="choice">
-            <input type="radio" name="alts" value="hidden" id="alts-hidden" />
-            <span
-              ><b>Hide my alts</b> (default). Each linked character is distinct. Nobody knows that
-              your linked characters are all the same you.</span
-            >
-          </label>
-          <label class="choice">
-            <input type="radio" name="alts" value="shown" id="alts-shown" />
-            <span
-              ><b>Show my alts.</b> All of your linked characters are visible to players on the
-              Dereth Network. Your Leafcull friends can see that you're playing your Dreamweave
-              alt.</span
-            >
-          </label>
-          <div class="buttons">
-            <button class="btn" type="submit" id="alts-save">Save</button>
-          </div>
-        </form>
+      <section class="panel" id="friends" aria-labelledby="h-friends" hidden>
+        <details class="topic">
+          <summary><h2 id="h-friends">Friends</h2></summary>
+          <div id="friends-list"></div>
+        </details>
       </section>
 
-      <section class="panel" id="friends" aria-labelledby="h-friends" hidden>
-        <h2 id="h-friends">Friends</h2>
-        <div id="friends-list"></div>
+      <section class="panel" id="discord" aria-labelledby="h-discord" hidden>
+        <h2 id="h-discord">Tells on Discord</h2>
+        <p>
+          A <code>@tell</code> to one of your linked characters while you aren't playing comes to
+          you as a direct message from the Dereth Network's bot and you can reply right there as
+          that character. Squelches and blocks still apply.
+        </p>
+        <p class="small muted">
+          Discord lets the bot message you only while you share a server with it, and let that
+          server's members send you direct messages (in Discord, the server's Privacy Settings).
+        </p>
       </section>
 
       <section class="panel" id="forget" aria-labelledby="h-forget" hidden>
         <h2 id="h-forget">Forget me</h2>
         <p>
-          Unlinks every character. Signs you out and forgets everything about your Discord identity
-          unless you're also a world operator.
+          Takes every linked character off the Dereth Network, unlinks every linked character,
+          forgets your friends, and signs you out everywhere. Unless you're also a world operator,
+          it forgets your Discord account too.
         </p>
+        <p class="small muted">Each character will keep the on-world friends it had.</p>
         <label class="choice">
           <input type="checkbox" id="forget-sure" />
           <span>Yes, forget all of it</span>

@@ -2,6 +2,7 @@
 // nothing is styled inline: the site's policy allows neither.
 import { createHub } from './hub.ts';
 import { explain } from './format.ts';
+import type { View } from './view.ts';
 
 type Child = Node | string | null | undefined | false;
 type Attrs = Record<string, string | boolean | undefined | null>;
@@ -103,6 +104,19 @@ export function copyField(value: string, label: string): HTMLElement {
     }
   });
   return h('div', { class: 'copy' }, input, button, said);
+}
+
+/** The elements a view describes (view.ts). */
+export function build(view: View): Node | null {
+  if (view === null || view === undefined || view === false) return null;
+  if (typeof view === 'string') return document.createTextNode(view);
+  if ('copy' in view) return copyField(view.copy, view.label);
+  const el = h(view.tag as keyof HTMLElementTagNameMap, view.attrs);
+  for (const child of view.children) {
+    const node = build(child);
+    if (node) el.append(node);
+  }
+  return el;
 }
 
 /** The site's own path and query, to come back to after signing in. */

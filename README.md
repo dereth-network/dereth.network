@@ -8,15 +8,34 @@ and the Dereth Network's pages for players and world operators.
   - `/network/`: what the network is, and its in-game commands;
   - `/worlds/`: the hub's list of worlds, searched and filtered;
   - `/operators/`: sign in with Discord, register or claim a world, prove you run it, turn the
-    network on or off, get a new key, and follow reports (and, for the hub's admins, review them);
+    network on or off, get a new key, mirror the world's rooms and the Global room into channels
+    of your Discord server (where the hub has Discord's bot), and follow reports; for the hub's
+    admins, review them, and keep the hub's settings: the approvals a day, the Discord account
+    age and the days a world may wait to be proven (each with its default, and their history),
+    the network's own mirrors, the picture mirrored lines show, every world's mirrors (take any
+    away), and the tells carried into Discord;
   - `/report/`: report a world;
-  - `/link/`: sign in with Discord and enter the code `/dn link` gave a character in game, linking
-    it to your account;
-  - `/characters/`: your linked characters (unlink any), whether they're shown as one person
-    (hidden until you show them), your friends, and forgetting all of it.
+  - `/link/`: the link `@dn link` gives a character in game opens here, its one-time code after
+    the `#`, which no server is sent; signed in with Discord (the page signs you in first, the
+    code kept in the tab meanwhile), it links the character to your account at once. A link
+    opened without its code offers a box for the code;
+  - `/characters/`: your linked characters (unlink any) and where each stands in the directory,
+    your friends, how tells to them reach your Discord while you aren't playing (where the hub
+    has Discord's bot), and forgetting all of it;
+  - `/directory/`: the characters on the Dereth Network (`@dn on` lists one, `@dn off` takes it
+    out), searched by name, world, level, heritage and allegiance, by latest change or by level;
+    `/directory/character/?a=Name@world`, a listed character's profile and its allegiance's
+    listed members, linked to each other's pages; and `/directory/allegiance/?w=world&k=key`, an
+    allegiance's listed members. Every address the directory doesn't show gets the same page.
+    Search engines are asked to keep out of all of them (`noindex` in each page, the
+    `X-Robots-Tag` header, and `public/robots.txt`).
 
   They call the hub's API from the browser (`src/network/hub.ts`); the site has no server of its
-  own beyond `server.mjs`. `src/network.css` is their stylesheet on top of `src/style.css`.
+  own beyond `server.mjs`. `src/network.css` is their stylesheet on top of `src/style.css`. The
+  directory's pages, and the Discord parts of `/operators/`, are described as plain data
+  (`src/network/view.ts`, `directory.ts`, `discord.ts`) before they become elements, and the
+  link page's steps are plain functions (`src/network/link.ts`), so the tests read what each
+  page shows and offers; `src/network/game.ts` holds the game's names for the skill, augmentation, heritage and rank numbers a profile carries.
 
 - `public/media/`: the screenshots, the launcher's painting, the icons, and the two fonts, Cinzel
   and EB Garamond, under the SIL Open Font Licence (`public/media/fonts/OFL-*.txt`). Files in
