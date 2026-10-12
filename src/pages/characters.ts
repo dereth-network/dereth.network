@@ -66,10 +66,19 @@ function render(person: Person) {
         });
         return h(
           'div',
-          { class: 'report-item' },
-          h('p', {}, h('b', {}, c.address), ` on ${c.world.name ?? c.world.slug}`),
-          h('p', { class: 'small muted' }, `Linked ${when(c.linkedAt)}`),
-          h('div', { class: 'buttons' }, unlink),
+          { class: 'char-item' },
+          h(
+            'div',
+            {},
+            h(
+              'p',
+              {},
+              h('b', {}, c.address),
+              h('span', { class: 'muted' }, ` on ${c.world.name ?? c.world.slug}`),
+            ),
+            h('p', { class: 'when' }, `Linked ${when(c.linkedAt)}`),
+          ),
+          unlink,
         );
       }),
     );

@@ -651,6 +651,27 @@ details[open] > summary {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+/* A linked character: name and world, when it was linked beneath, Unlink to the right. */
+.char-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.char-item:last-child {
+  border-bottom: 0;
+}
+.char-item p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.char-item .when {
+  margin-top: 1px;
+  font-size: 13px;
+  color: var(--faint);
+}
 .counter {
   justify-self: end;
   font-size: 14px;
