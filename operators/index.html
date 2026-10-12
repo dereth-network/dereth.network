@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0c0a10" />
+    <meta
+      name="description"
+      content="Put your Asheron's Call world on the Dereth Network: sign in with Discord, register or claim it, prove you run it, and manage its key."
+    />
+    <meta name="dereth-hub" content="%DERETH_HUB_URL%" />
+    <link rel="icon" href="/media/art/dereth-icon.png" type="image/png" />
+    <link rel="preload" href="/media/fonts/Cinzel-var.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="stylesheet" href="/src/style.css" />
+    <link rel="stylesheet" href="/src/network.css" />
+    <script type="module" src="/src/pages/operators.ts"></script>
+    <title>Operators · Dereth Network</title>
+  </head>
+  <body>
+    <div class="vista" aria-hidden="true"><img src="/media/art/obsidian-bridge.webp" alt="" /></div>
+
+    <div class="page">
+      <header class="top">
+        <a class="lockup" href="/" aria-label="Dereth Network">
+          <img src="/media/art/emblem.png" alt="" width="60" height="60" />
+          <span class="word">DERETH<br />NETWORK</span>
+        </a>
+        <nav class="rail" aria-label="Site">
+          <a href="https://play.dereth.network/?server=https://retail.dereth.network/status"
+            >Play</a
+          >
+          <a href="/network/" aria-current="true">Network</a>
+          <a href="https://github.com/dereth-network/dereth/releases">Download</a>
+          <a href="https://github.com/dereth-network/dereth">Source</a>
+        </nav>
+      </header>
+
+      <section class="panel lead" aria-labelledby="h-ops">
+        <h1 id="h-ops">Bring your world to the Dereth Network</h1>
+        <p>
+          Register (or claim) your world, prove you run it, and put its key in your server. Players
+          choose to opt in individually with <code>/dn on</code>.
+        </p>
+        <ol class="steps">
+          <li>
+            <a id="step-signin" href="#signin"><b>Sign in</b></a> with Discord. The hub keeps your
+            Discord id and name, and when you signed in; nothing else.
+          </li>
+          <li>
+            <a id="step-register" href="#signin"><b>Register</b></a> your world, or <b>claim</b> its
+            listing if it's already in the <a href="/worlds/">world list</a>.
+          </li>
+          <li>
+            <b>Save its key</b>, which is shown once, and give it to your server.
+            <ul class="dashed">
+              <li>
+                Running ACE? Set up the
+                <a
+                  href="https://github.com/dereth-network/dereth/blob/main/network/ace-mod/README.md#install"
+                  >Dereth.Network mod</a
+                >.
+              </li>
+              <li>
+                Running Empyrean? Dereth Network support is built in under the
+                <code>[federation]</code> setting.
+              </li>
+              <li>
+                Running GDLE? GDLE is closed source, without mods. We'd love to
+                <a href="https://github.com/dereth-network/dereth/blob/main/docs/network/README.md"
+                  >build support</a
+                >.
+              </li>
+            </ul>
+          </li>
+          <li>
+            <b>Prove you run it</b>, with a token on a page on the world's own host, or with
+            <code>/dn verify</code> typed by an Admin in game.
+          </li>
+          <li>Once it's proven, the network turns on for the world by itself.</li>
+        </ol>
+        <details class="topic">
+          <summary><h2 id="h-opcmds">Operator commands</h2></summary>
+          <dl class="rows cmds">
+            <div>
+              <dt><code>/dn verify &lt;token&gt;</code></dt>
+              <dd>Admins only. Proves to the hub that the world is yours.</dd>
+            </div>
+            <div>
+              <dt><code>/dn admin block leafcull</code></dt>
+              <dd>
+                Sentinels and up can block a world or a single character (<code
+                  >An Adventurer@leafcull</code
+                >).
+              </dd>
+            </div>
+            <div>
+              <dt><code>/dn admin unblock leafcull</code></dt>
+              <dd>Lift a block on a world or character.</dd>
+            </div>
+            <div>
+              <dt><code>/dn admin blocks | status</code></dt>
+              <dd>List blocks applied to this world.</dd>
+            </div>
+          </dl>
+        </details>
+      </section>
+
+      <div id="notices" class="notices" aria-live="polite"></div>
+
+      <section class="panel" id="signin" aria-labelledby="h-signin" hidden>
+        <h2 id="h-signin">Sign in</h2>
+        <p>
+          Operators sign in with Discord. The hub asks Discord only who you are, and keeps no
+          Discord token.
+        </p>
+        <p id="signin-claim" class="muted" hidden></p>
+        <div class="buttons">
+          <a class="btn lit" id="signin-link" href="/operators/">Sign in with Discord</a>
+        </div>
+      </section>
+
+      <section class="panel" id="home" aria-labelledby="h-yours" hidden>
+        <div class="account">
+          <span>Signed in as <b id="who"></b></span>
+          <button class="btn small" id="signout" type="button">Sign out</button>
+        </div>
+        <h2 id="h-yours">Your worlds</h2>
+        <div class="op-worlds" id="worlds"></div>
+        <div class="buttons">
+          <button class="btn lit" id="open-register" type="button">Register a world</button>
+          <button class="btn" id="open-claim" type="button">Claim a listing</button>
+        </div>
+      </section>
+
+      <section class="panel" id="register" aria-labelledby="h-register" hidden>
+        <h2 id="h-register">Register a world</h2>
+        <p>
+          A new world is listed nowhere until you prove you run it. Its key comes with it, shown
+          once.
+        </p>
+        <div id="register-form"></div>
+      </section>
+
+      <section class="panel" id="claim" aria-labelledby="h-claim" hidden>
+        <h2 id="h-claim">Claim a listing</h2>
+        <p>
+          Worlds carried over from the community's server list belong to nobody yet. If one of them
+          is yours, claim it: the listing stays as it is until you prove you run the world, then
+          it's yours to manage.
+        </p>
+        <form class="form" id="claim-form">
+          <label class="field">
+            <span>The listing's slug</span>
+            <input
+              type="text"
+              id="claim-slug"
+              name="slug"
+              required
+              autocomplete="off"
+              spellcheck="false"
+              maxlength="40"
+              placeholder="leafcull"
+            />
+          </label>
+          <div class="buttons">
+            <button class="btn lit" type="submit">Claim it</button>
+            <button class="btn" type="button" id="close-claim">Cancel</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel" id="reports" aria-labelledby="h-reports" hidden>
+        <h2 id="h-reports">Your reports</h2>
+        <div id="reports-list"></div>
+        <div class="buttons">
+          <a class="btn" href="/report/">Report a world</a>
+        </div>
+      </section>
+
+      <section class="panel" id="review" aria-labelledby="h-review" hidden>
+        <h2 id="h-review">Reports to review</h2>
+        <p>
+          Dismissing closes a report. Revoking also turns the network off for the world, stops its
+          key, closes its claims and locks it; only the hub's command line unlocks it.
+        </p>
+        <label class="choice small">
+          <input type="checkbox" id="review-all" />
+          <span>Show closed reports too</span>
+        </label>
+        <div id="review-list"></div>
+      </section>
+
+      <footer class="foot">
+        <span
+          ><a href="https://github.com/dereth-network/dereth">dereth-network/dereth</a> |
+          <a href="/report/">Report a world</a></span
+        >
+        <span
+          >Dereth is an independent project, not affiliated with or endorsed by any current rights
+          holder.</span
+        >
+      </footer>
+    </div>
+  </body>
+</html>

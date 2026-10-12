@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0c0a10" />
+    <meta
+      name="description"
+      content="The Dereth Network links community Asheron's Call worlds: tells, friends, channels and a shared Global room across worlds, on any client."
+    />
+    <meta name="dereth-hub" content="%DERETH_HUB_URL%" />
+    <link rel="icon" href="/media/art/dereth-icon.png" type="image/png" />
+    <link rel="preload" href="/media/fonts/Cinzel-var.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="stylesheet" href="/src/style.css" />
+    <link rel="stylesheet" href="/src/network.css" />
+    <script type="module" src="/src/pages/network.ts"></script>
+    <title>The Dereth Network</title>
+  </head>
+  <body>
+    <div class="vista" aria-hidden="true"><img src="/media/art/obsidian-bridge.webp" alt="" /></div>
+
+    <div class="page">
+      <header class="top">
+        <a class="lockup" href="/" aria-label="Dereth Network">
+          <img src="/media/art/emblem.png" alt="" width="60" height="60" />
+          <span class="word">DERETH<br />NETWORK</span>
+        </a>
+        <nav class="rail" aria-label="Site">
+          <a href="https://play.dereth.network/?server=https://retail.dereth.network/status"
+            >Play</a
+          >
+          <a href="/network/" aria-current="page">Network</a>
+          <a href="https://github.com/dereth-network/dereth/releases">Download</a>
+          <a href="https://github.com/dereth-network/dereth">Source</a>
+        </nav>
+      </header>
+
+      <section class="panel lead" aria-labelledby="h-net">
+        <h1 id="h-net">
+          The Dereth Network<span>tells, friends and chat between Asheron's Call worlds</span>
+        </h1>
+        <p>
+          The Dereth Network links community worlds, so you can send a tell to a friend on another
+          world, see when they come online, and talk in a room every world shares. It works with any
+          client, retail included: your world does the work, and your client only sees tells,
+          friends and chat it already knows.
+        </p>
+        <p class="live" id="live" hidden>
+          On the network now: <span class="names" id="live-names"></span>
+        </p>
+        <div class="row">
+          <div class="cta">
+            <a class="btn" href="/worlds/">See the worlds</a>
+            <p class="muted">
+              Kept up to date daily from the
+              <a href="https://github.com/acresources/serverslist">community server list</a>.
+            </p>
+          </div>
+          <div class="cta">
+            <a class="btn" href="/operators/">Add your world</a>
+            <p class="muted">Run a world? Put it on the network.</p>
+          </div>
+          <div class="cta">
+            <a class="btn" href="/characters/">Your characters</a>
+            <p class="muted">Link your characters and manage your alts.</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="panel guide">
+        <details class="topic">
+          <summary><h2 id="h-join">How does it work?</h2></summary>
+          <p>
+            A world operator can enable the Dereth Network. Players are not connected to the network
+            by default; each character is opted in individually:
+          </p>
+          <dl class="rows cmds">
+            <div>
+              <dt><code>/dn on</code></dt>
+              <dd>Join the Dereth Network as <code>Character Name@world</code>.</dd>
+            </div>
+            <div>
+              <dt><code>/dn off</code></dt>
+              <dd>Disconnect from the Dereth Network on this character.</dd>
+            </div>
+            <div>
+              <dt><code>/dn</code></dt>
+              <dd>Show connection status.</dd>
+            </div>
+            <div>
+              <dt><code>/dn worlds</code></dt>
+              <dd>Show worlds connected to the Dereth Network.</dd>
+            </div>
+            <div>
+              <dt><code>/dng &lt;text&gt;</code></dt>
+              <dd>
+                Send a message to global chat shared by all Dereth Network worlds.
+                <small>
+                  World operators decide which global channel, if any, shows Dereth Network global
+                  chat, but we think Roleplay is a good default.
+                </small>
+              </dd>
+            </div>
+          </dl>
+          <p class="muted small">
+            <code>/derethnetwork</code> is the same command spelled out, <code>@dn</code> works as
+            well as <code>/dn</code>, and <code>/dn global &lt;text&gt;</code> as well as
+            <code>/dng</code>.
+          </p>
+          <details class="fold">
+            <summary>Tells</summary>
+            <p>
+              Players on the Dereth Network are known by <code>Character Name@world</code>. Send a
+              tell as you would normally, and reply with <code>@r</code> or by clicking their name
+              in the chat box.
+            </p>
+            <pre
+              class="chat"
+            ><span class="you">@tell An Adventurer@leafcull, long time! still playing?</span>
+You tell An Adventurer@leafcull, "long time! still playing?"
+<span class="them">An Adventurer@leafcull tells you, "yes! come say hi Saturday"</span></pre>
+            <p>
+              Tells traveling through the Dereth Network are always followed by their
+              <code>@world</code> designation, even if it is the same world you're on.
+            </p>
+          </details>
+          <details class="fold">
+            <summary>Friends</summary>
+            <p>
+              Friend someone on the Dereth Network and they'll show up right in the retail client's
+              friend list.
+            </p>
+            <dl class="rows cmds">
+              <div>
+                <dt><code>/dn friends add An Adventurer@leafcull</code></dt>
+                <dd>Add a Dereth Network friend. You can use the in-game friends panel, too.</dd>
+              </div>
+              <div>
+                <dt><code>/dn friends</code></dt>
+                <dd>Show your Dereth Network friends.</dd>
+              </div>
+              <div>
+                <dt><code>/dn friends remove An Adventurer@leafcull</code></dt>
+                <dd>Remove a Dereth Network friend.</dd>
+              </div>
+            </dl>
+          </details>
+          <details class="fold">
+            <summary>Squelch</summary>
+            <dl class="rows cmds">
+              <div>
+                <dt><code>/squelch An Adventurer@leafcull</code></dt>
+                <dd>Mute someone on the Dereth Network.</dd>
+              </div>
+              <div>
+                <dt><code>/unsquelch An Adventurer@leafcull</code></dt>
+                <dd>Unmute someone on the Dereth Network.</dd>
+              </div>
+              <div>
+                <dt><code>/dn squelch leafcull</code></dt>
+                <dd>Mute an entire world.</dd>
+              </div>
+              <div>
+                <dt><code>/dn unsquelch leafcull</code></dt>
+                <dd>Unmute an entire world.</dd>
+              </div>
+            </dl>
+            <p>
+              You can also tell your world's operator about a nuisance character or world; operators
+              can block entire worlds or characters from interacting with their world over the
+              Dereth Network. A world that abuses the network can be
+              <a href="/report/">reported</a>.
+            </p>
+          </details>
+          <details class="fold">
+            <summary>Channels</summary>
+            <p>Invite-only cross-world groups, addressable via <code>@tell</code>.</p>
+            <p class="chat-label">In any client:</p>
+            <pre
+              class="chat"
+            ><span class="you">@tell oldguard@channel, anyone around tonight?</span>
+<span class="them">oldguard@channel tells you, "An Adventurer@leafcull: I am!"</span></pre>
+            <p class="chat-label">In the Dereth client, the same lines read as channel chat:</p>
+            <pre class="chat"><span class="chan">[oldguard] You say, "anyone around tonight?"</span>
+<span class="chan">[oldguard] An Adventurer@leafcull says, "I am!"</span></pre>
+            <dl class="rows cmds">
+              <div>
+                <dt><code>/dn channel create oldguard</code></dt>
+                <dd>Start a channel.</dd>
+              </div>
+              <div>
+                <dt><code>/dn channel invite oldguard Ann@frost</code></dt>
+                <dd>Invite someone. Any member can.</dd>
+              </div>
+              <div>
+                <dt><code>/dn channel join oldguard</code></dt>
+                <dd>Join a channel you've been invited to.</dd>
+              </div>
+              <div>
+                <dt><code>/dn channel members oldguard</code></dt>
+                <dd>Who's in it.</dd>
+              </div>
+              <div>
+                <dt><code>/dn channel list</code></dt>
+                <dd>Your channels.</dd>
+              </div>
+              <div>
+                <dt><code>/dn channel leave oldguard</code></dt>
+                <dd>
+                  Leave. When the last member leaves, the channel is gone. Squelching a channel
+                  leaves it too.
+                </dd>
+              </div>
+            </dl>
+          </details>
+        </details>
+
+        <details class="topic">
+          <summary><h2 id="h-alts">What about alts?</h2></summary>
+          <p>
+            <a href="/characters/">Sign in with Discord</a> to link multiple characters across
+            multiple worlds under one you. Your alts and mules and other-worldly characters are not
+            united under your shared identity unless you choose to.
+          </p>
+          <dl class="rows cmds">
+            <div>
+              <dt><code>/dn link</code></dt>
+              <dd>Link the logged-in character to your Discord identity.</dd>
+            </div>
+            <div>
+              <dt><code>/dn unlink</code></dt>
+              <dd>
+                Unlink the logged-in character from your Discord identity. Your Dereth Network
+                friends won't go anywhere.
+              </dd>
+            </div>
+            <div>
+              <dt><code>/dn alts</code></dt>
+              <dd>
+                Displays whether your alts are automatically discoverable or not. You can control
+                whether your alts are recognizable as one "you" on the
+                <a href="/characters/">Characters</a> page.
+              </dd>
+            </div>
+            <div>
+              <dt><code>/dn alts An Adventurer@leafcull</code></dt>
+              <dd>Display a character's alts, if they chose to make them public.</dd>
+            </div>
+          </dl>
+          <div class="buttons">
+            <a class="btn" href="/characters/">Your characters</a>
+          </div>
+        </details>
+
+        <details class="topic">
+          <summary><h2 id="h-privacy">Who sees you?</h2></summary>
+          <p>
+            Initially all characters are only visible to mutual friends and they can receive tells
+            from any other player on the Dereth Network. You can change these settings:
+          </p>
+          <dl class="rows cmds">
+            <div>
+              <dt><code>/dn visible nobody | friends | channels | anyone</code></dt>
+              <dd>
+                Who sees you online. <code>channels</code> means your friends and the members of
+                your channels.
+              </dd>
+            </div>
+            <div>
+              <dt><code>/dn reachable nobody | friends | anyone</code></dt>
+              <dd>
+                Who can send you a first tell. Anyone you've sent a tell to in the last 30 minutes
+                can always answer.
+              </dd>
+            </div>
+            <div>
+              <dt>Appear Offline</dt>
+              <dd>The game's own character option hides you from everyone, here and elsewhere.</dd>
+            </div>
+          </dl>
+          <p>
+            The Dereth Network keeps no messages nor record of online status. It has no player
+            accounts either and it only knows a character by a world vouching for it.
+          </p>
+        </details>
+      </div>
+
+      <footer class="foot">
+        <span
+          ><a href="https://github.com/dereth-network/dereth">dereth-network/dereth</a> |
+          <a href="/report/">Report a world</a></span
+        >
+        <span
+          >Dereth is an independent project, not affiliated with or endorsed by any current rights
+          holder.</span
+        >
+      </footer>
+    </div>
+  </body>
+</html>

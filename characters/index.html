@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0c0a10" />
+    <meta
+      name="description"
+      content="Your Asheron's Call characters linked to your Discord account on the Dereth Network: unlink them, and choose whether anyone may learn they're one person."
+    />
+    <meta name="dereth-hub" content="%DERETH_HUB_URL%" />
+    <link rel="icon" href="/media/art/dereth-icon.png" type="image/png" />
+    <link rel="preload" href="/media/fonts/Cinzel-var.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="stylesheet" href="/src/style.css" />
+    <link rel="stylesheet" href="/src/network.css" />
+    <script type="module" src="/src/pages/characters.ts"></script>
+    <title>Your characters · Dereth Network</title>
+  </head>
+  <body>
+    <div class="vista" aria-hidden="true"><img src="/media/art/obsidian-bridge.webp" alt="" /></div>
+
+    <div class="page">
+      <header class="top">
+        <a class="lockup" href="/" aria-label="Dereth Network">
+          <img src="/media/art/emblem.png" alt="" width="60" height="60" />
+          <span class="word">DERETH<br />NETWORK</span>
+        </a>
+        <nav class="rail" aria-label="Site">
+          <a href="https://play.dereth.network/?server=https://retail.dereth.network/status"
+            >Play</a
+          >
+          <a href="/network/" aria-current="true">Network</a>
+          <a href="https://github.com/dereth-network/dereth/releases">Download</a>
+          <a href="https://github.com/dereth-network/dereth">Source</a>
+        </nav>
+      </header>
+
+      <div id="notices" class="notices" aria-live="polite"></div>
+
+      <section class="panel lead" aria-labelledby="h-chars">
+        <h1 id="h-chars">Your characters</h1>
+        <div id="signin" hidden>
+          <p>Sign in with Discord to manage your linked characters.</p>
+          <div class="buttons">
+            <a class="btn lit" id="signin-link" href="/characters/">Sign in with Discord</a>
+          </div>
+        </div>
+        <div id="home" hidden>
+          <div class="account">
+            <span>Signed in as <b id="who"></b></span>
+            <button class="btn small" id="signout" type="button">Sign out</button>
+          </div>
+          <details class="topic" open>
+            <summary><h2 id="h-linked">Linked characters</h2></summary>
+            <p class="muted">
+              Use <code>/dn link</code> while logged in to a world on the Dereth Network to start.
+            </p>
+            <div id="characters"></div>
+            <form class="form" id="link-form">
+              <label class="field">
+                <span>Link a character</span>
+                <input
+                  type="text"
+                  id="code"
+                  name="code"
+                  required
+                  autocomplete="one-time-code"
+                  spellcheck="false"
+                  maxlength="16"
+                  placeholder="K7QD-2MXP"
+                />
+                <span class="hint" id="code-hint"
+                  >The code from <code>/dn link</code>, good for ten minutes. Give it to nobody
+                  else.</span
+                >
+              </label>
+              <div class="buttons">
+                <button class="btn lit" type="submit" id="link-send">Link</button>
+              </div>
+            </form>
+          </details>
+        </div>
+      </section>
+
+      <section class="panel" id="alts" aria-labelledby="h-alts" hidden>
+        <h2 id="h-alts">Privacy</h2>
+        <form class="form" id="alts-form">
+          <label class="choice">
+            <input type="radio" name="alts" value="hidden" id="alts-hidden" />
+            <span
+              ><b>Hide my alts</b> (default). Each linked character is distinct. Nobody knows that
+              your linked characters are all the same you.</span
+            >
+          </label>
+          <label class="choice">
+            <input type="radio" name="alts" value="shown" id="alts-shown" />
+            <span
+              ><b>Show my alts.</b> All of your linked characters are visible to players on the
+              Dereth Network. Your Leafcull friends can see that you're playing your Dreamweave
+              alt.</span
+            >
+          </label>
+          <div class="buttons">
+            <button class="btn" type="submit" id="alts-save">Save</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel" id="friends" aria-labelledby="h-friends" hidden>
+        <h2 id="h-friends">Friends</h2>
+        <div id="friends-list"></div>
+      </section>
+
+      <section class="panel" id="forget" aria-labelledby="h-forget" hidden>
+        <h2 id="h-forget">Forget me</h2>
+        <p>
+          Unlinks every character. Signs you out and forgets everything about your Discord identity
+          unless you're also a world operator.
+        </p>
+        <label class="choice">
+          <input type="checkbox" id="forget-sure" />
+          <span>Yes, forget all of it</span>
+        </label>
+        <div class="buttons">
+          <button class="btn" type="button" id="forget-go" disabled>Forget me</button>
+        </div>
+      </section>
+
+      <footer class="foot">
+        <span><a href="https://github.com/dereth-network/dereth">dereth-network/dereth</a></span>
+        <span
+          >Dereth is an independent project, not affiliated with or endorsed by any current rights
+          holder.</span
+        >
+      </footer>
+    </div>
+  </body>
+</html>

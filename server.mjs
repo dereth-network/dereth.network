@@ -21,22 +21,74 @@ const TYPES = {
   '.txt': 'text/plain; charset=utf-8',
 };
 
-const HEADERS = {
-  'X-Content-Type-Options': 'nosniff',
-  'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'X-Frame-Options': 'DENY',
-  'Content-Security-Policy':
-    "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
-};
+// The network pages call the hub's API from the browser. DERETH_HUB_URL names another hub (a
+// local one, for testing); the build reads the same variable to write it into those pages.
+const DEFAULT_HUB_URL = 'https://hub.dereth.network';
 
-export function createSite({ root, releaseId }) {
+// No inline styles or scripts anywhere. The one address the pages may reach besides the site is
+// the hub's origin.
+export function contentSecurityPolicy(hubUrl = DEFAULT_HUB_URL) {
+  const hub = new URL(hubUrl);
+  if (!['http:', 'https:'].includes(hub.protocol) || hub.username || hub.password)
+    throw new Error('The hub must be an http(s) URL without credentials');
+  return `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' ${hub.origin}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'`;
+}
+
+// Pages that moved, by their old address (without its slash), to where they went.
+export const MOVED = { '/link': '/characters/' };
+
+// The headers every answer carries.
+export function securityHeaders(hubUrl = DEFAULT_HUB_URL) {
+  return {
+    'X-Content-Type-Options': 'nosniff',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'X-Frame-Options': 'DENY',
+    'Content-Security-Policy': contentSecurityPolicy(hubUrl),
+  };
+}
+
+// The same rules for a static host that reads `_headers` and `_redirects` (Cloudflare Pages):
+// every answer's headers, Vite's hashed files cached for a year (anything else is checked on each
+// visit, as the host does unless told otherwise), and the moved pages, with or without the slash.
+export function staticHostFiles(hubUrl = DEFAULT_HUB_URL) {
+  const headers = Object.entries(securityHeaders(hubUrl)).map(([k, v]) => `  ${k}: ${v}`);
+  const redirects = Object.entries(MOVED).flatMap(([from, to]) => [
+    `${from} ${to} 302`,
+    `${from}/ ${to} 302`,
+  ]);
+  return {
+    _headers: [
+      '/*',
+      ...headers,
+      '/assets/*',
+      '  Cache-Control: public, max-age=31536000, immutable',
+      '',
+    ].join('\n'),
+    _redirects: [...redirects, ''].join('\n'),
+  };
+}
+
+export function createSite({
+  root,
+  releaseId,
+  hubUrl = process.env.DERETH_HUB_URL || DEFAULT_HUB_URL,
+}) {
   const webRoot = resolve(root);
+  const headers = securityHeaders(hubUrl);
   const send = (response, status, type, body, cache = 'no-cache') => {
-    response.writeHead(status, { ...HEADERS, 'Content-Type': type, 'Cache-Control': cache });
+    response.writeHead(status, { ...headers, 'Content-Type': type, 'Cache-Control': cache });
     response.end(body);
   };
-  return createServer(async (request, response) => {
-    const path = decodeURIComponent(new URL(request.url ?? '/', 'http://x').pathname);
+  const serve = async (request, response) => {
+    let path;
+    let search;
+    try {
+      const url = new URL(request.url ?? '/', 'http://x');
+      path = decodeURIComponent(url.pathname);
+      search = url.search;
+    } catch {
+      return send(response, 400, TYPES['.txt'], 'Bad request');
+    }
     if (path === '/healthz')
       return send(
         response,
@@ -47,25 +99,45 @@ export function createSite({ root, releaseId }) {
       );
     if (request.method !== 'GET' && request.method !== 'HEAD')
       return send(response, 405, TYPES['.txt'], 'Method not allowed');
-    // A file under dist/, never outside it.
-    const file = normalize(join(webRoot, path === '/' ? 'index.html' : path));
+    // A page that moved, kept for the addresses already out there: the hub names /link/ in
+    // every link code it gives a player in game.
+    const moved = MOVED[path.replace(/\/$/, '')];
+    if (moved) {
+      response.writeHead(302, {
+        ...headers,
+        Location: moved + search,
+        'Cache-Control': 'no-cache',
+      });
+      return response.end();
+    }
+    // A file under dist/, never outside it. A page is its folder's index.html, so /worlds/ and
+    // /worlds are the same page.
+    const file = normalize(join(webRoot, path));
     if (file === webRoot || file.startsWith(webRoot + sep)) {
-      try {
-        if ((await stat(file)).isFile()) {
-          // Vite's hashed files never change; everything else is checked on each visit.
-          const cache = path.startsWith('/assets/')
-            ? 'public, max-age=31536000, immutable'
-            : 'no-cache';
-          const type = TYPES[extname(file).toLowerCase()] ?? 'application/octet-stream';
-          return send(response, 200, type, await readFile(file), cache);
-        }
-      } catch {}
+      for (const candidate of extname(path) ? [file] : [file, join(file, 'index.html')]) {
+        try {
+          if ((await stat(candidate)).isFile()) {
+            // Vite's hashed files never change; everything else is checked on each visit.
+            const cache = path.startsWith('/assets/')
+              ? 'public, max-age=31536000, immutable'
+              : 'no-cache';
+            const type = TYPES[extname(candidate).toLowerCase()] ?? 'application/octet-stream';
+            return send(response, 200, type, await readFile(candidate), cache);
+          }
+        } catch {}
+      }
     }
     // Any other page address gets the site; any other file is missing.
     if (!extname(path))
       return send(response, 200, TYPES['.html'], await readFile(join(webRoot, 'index.html')));
     return send(response, 404, TYPES['.txt'], 'Not found');
-  });
+  };
+  return createServer((request, response) =>
+    serve(request, response).catch(() => {
+      if (response.headersSent) response.destroy();
+      else send(response, 500, TYPES['.txt'], 'Server error');
+    }),
+  );
 }
 
 // Run as the program (not imported by the release check). The deploy starts it through the

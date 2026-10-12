@@ -200,6 +200,10 @@ a {
   gap: 26px;
   align-items: end;
 }
+/* The title and its note start level with the top of the actions beside them. */
+.intro > div:first-child {
+  align-self: start;
+}
 .intro h1 {
   margin: 0 0 10px;
   font: 600 clamp(26px, 4vw, 38px)/1.12 var(--display);

@@ -10,6 +10,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build && node deploy/check-release.mjs .",
     "start": "node server.mjs",
+    "test": "node --test \"test/*.test.*\"",
     "deploy": "node scripts/deploy.mjs",
     "format": "prettier --write ."
   },

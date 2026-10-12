@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0c0a10" />
+    <meta
+      name="description"
+      content="The Asheron's Call worlds the Dereth Network's hub knows: who's online, how many are playing, their rules, and which are on the network."
+    />
+    <meta name="dereth-hub" content="%DERETH_HUB_URL%" />
+    <link rel="icon" href="/media/art/dereth-icon.png" type="image/png" />
+    <link rel="preload" href="/media/fonts/Cinzel-var.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="stylesheet" href="/src/style.css" />
+    <link rel="stylesheet" href="/src/network.css" />
+    <script type="module" src="/src/pages/worlds.ts"></script>
+    <title>Worlds · Dereth Network</title>
+  </head>
+  <body>
+    <div class="vista" aria-hidden="true"><img src="/media/art/obsidian-bridge.webp" alt="" /></div>
+
+    <div class="page">
+      <header class="top">
+        <a class="lockup" href="/" aria-label="Dereth Network">
+          <img src="/media/art/emblem.png" alt="" width="60" height="60" />
+          <span class="word">DERETH<br />NETWORK</span>
+        </a>
+        <nav class="rail" aria-label="Site">
+          <a href="https://play.dereth.network/?server=https://retail.dereth.network/status"
+            >Play</a
+          >
+          <a href="/network/" aria-current="true">Network</a>
+          <a href="https://github.com/dereth-network/dereth/releases">Download</a>
+          <a href="https://github.com/dereth-network/dereth">Source</a>
+        </nav>
+      </header>
+
+      <section class="panel lead" aria-labelledby="h-worlds">
+        <h1 id="h-worlds">Worlds on the Dereth Network</h1>
+        <p>
+          Every world we know about, sourced from
+          <a href="https://github.com/acresources/serverslist">the community server list</a> as well
+          as worlds registered directly with the Dereth Network. Only worlds that have joined the
+          Dereth Network support cross-world communication.
+        </p>
+        <p class="summary" id="summary" hidden></p>
+        <form class="toolbar" id="filters" role="search">
+          <label class="field">
+            <span>Search</span>
+            <input
+              type="search"
+              id="q"
+              name="q"
+              placeholder="A name, slug or word from its description"
+              autocomplete="off"
+              maxlength="100"
+            />
+          </label>
+          <label class="field">
+            <span>Rules</span>
+            <select id="ruleset" name="ruleset">
+              <option value="">Any</option>
+              <option value="PvE">PvE</option>
+              <option value="PvP">PvP</option>
+              <option value="PvP-lite">PvP-lite</option>
+              <option value="Custom">Custom</option>
+            </select>
+          </label>
+          <label class="choice">
+            <input type="checkbox" id="networked" name="federation" value="on" />
+            <span>On the network only</span>
+          </label>
+        </form>
+        <div id="notices" class="notices"></div>
+        <ul class="worlds" id="list" aria-live="polite" aria-busy="true"></ul>
+        <div class="buttons">
+          <button class="btn" id="more" type="button" hidden>Show more</button>
+        </div>
+      </section>
+
+      <footer class="foot">
+        <span
+          ><a href="https://github.com/dereth-network/dereth">dereth-network/dereth</a> |
+          <a href="/report/">Report a world</a></span
+        >
+        <span
+          >Dereth is an independent project, not affiliated with or endorsed by any current rights
+          holder.</span
+        >
+      </footer>
+    </div>
+  </body>
+</html>
