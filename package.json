@@ -11,7 +11,7 @@
     "build": "vite build && node deploy/check-release.mjs .",
     "start": "node server.mjs",
     "test": "node --test \"test/*.test.*\"",
-    "deploy": "node scripts/deploy.mjs",
+    "deploy": "npm run build && npx wrangler@4 pages deploy dist --project-name dereth-network --branch main",
     "format": "prettier --write ."
   },
   "devDependencies": {

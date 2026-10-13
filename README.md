@@ -50,13 +50,10 @@ npm install
 npm run dev        # http://127.0.0.1:5173
 npm run build      # builds dist/ and checks every page
 npm test           # the API client, the server, and every page built and checked
-npm run deploy     # builds, copies to the server, switches it in, checks it
+npm run deploy     # builds, checks, and deploys dist/ to Cloudflare Pages
 ```
 
-`server.mjs` serves `dist/` (Node, no dependencies), with `/healthz` for the deploy. The deploy's
-destination is yours, never the repository's: `deploy/target.json` (untracked, from
-`deploy/target.example.json`), the `DERETH_DEPLOY_TARGET` environment variable, or
-`npm run deploy -- you@your-vm`.
+`server.mjs` serves `dist/` (Node, no dependencies), with `/healthz` for the release check.
 
 ## Cloudflare Pages
 
@@ -68,8 +65,8 @@ site has no `404.html`.
 
 ```sh
 npm ci
-npm run build
-npx wrangler@4 pages deploy dist --project-name dereth-network --branch main
+npm run deploy     # npm run build, then:
+                   # npx wrangler@4 pages deploy dist --project-name dereth-network --branch main
 ```
 
 The first deploy asks you to sign in to Cloudflare (`npx wrangler@4 login`) and creates the

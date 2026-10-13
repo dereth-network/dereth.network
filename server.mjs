@@ -1,4 +1,4 @@
-// The website's server: the built site in dist/, and /healthz for the deploy script. Node only, no
+// The website's server: the built site in dist/, and /healthz for the release check. Node only, no
 // dependencies.
 import { createServer } from 'node:http';
 import { realpathSync } from 'node:fs';
