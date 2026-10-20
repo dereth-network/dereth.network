@@ -1,3 +1,5 @@
+import { linkReleases } from './releases.ts';
+
 // The before-and-after sliders: dragging across a picture, or its range control, moves the divide
 // between the end-of-retail view and the classic one.
 for (const slider of document.querySelectorAll<HTMLElement>('[data-slider]')) {
@@ -23,3 +25,6 @@ for (const slider of document.querySelectorAll<HTMLElement>('[data-slider]')) {
   slider.addEventListener('pointerup', () => (dragging = false));
   slider.addEventListener('pointercancel', () => (dragging = false));
 }
+
+// Each program's heading links to its latest release.
+void linkReleases();

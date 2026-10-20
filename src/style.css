@@ -444,6 +444,16 @@ code {
   align-items: center;
   gap: 12px;
 }
+.panel h2.named a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+.panel h2.named a[href]:hover {
+  color: #fff;
+}
 .panel h2.named img {
   width: 44px;
   height: 44px;

@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#0c0a10" />
     <meta
       name="description"
-      content="Dereth is an open Asheron's Call client for Windows, macOS, Linux and the browser, with Empyrean, a Rust port of ACE, and a launcher for the community's worlds."
+      content="Dereth is an open Asheron's Call client for Windows, macOS, Linux and the browser, with Empyrean, a Rust port of ACE, Lyceum, a world builder, and a launcher for the community's worlds."
     />
     <link rel="icon" href="/media/art/dereth-icon.png" type="image/png" />
     <link rel="preload" href="/media/fonts/Cinzel-var.ttf" as="font" type="font/ttf" crossorigin />
@@ -76,7 +76,11 @@
 
       <section class="panel" aria-labelledby="h-dereth">
         <h2 id="h-dereth" class="named">
-          <img src="/media/art/dereth-icon.png" alt="" width="48" height="48" />Dereth
+          <a
+            href="https://github.com/dereth-network/dereth/releases?q=dereth-v&amp;expanded=true"
+            data-release="dereth"
+            ><img src="/media/art/dereth-icon.png" alt="" width="48" height="48" />Dereth</a
+          >
         </h2>
         <div class="compare native">
           <div class="slider" data-slider data-ratio="charselect">
@@ -141,7 +145,11 @@
 
       <section class="panel" aria-labelledby="h-emp">
         <h2 id="h-emp" class="named">
-          <img src="/media/art/empyrean-icon.png" alt="" width="48" height="48" />Empyrean
+          <a
+            href="https://github.com/dereth-network/dereth/releases?q=empyrean-v&amp;expanded=true"
+            data-release="empyrean"
+            ><img src="/media/art/empyrean-icon.png" alt="" width="48" height="48" />Empyrean</a
+          >
         </h2>
         <p>
           Empyrean started as a straight port of ACE, so the client and server would share an exact
@@ -170,6 +178,41 @@
             <b>Announcements.</b> The classic interface brings back the large pre-Throne of Destiny
             announcements box. For parity it's in the modern interface too, and an Empyrean server
             can fill it.
+          </li>
+        </ul>
+      </section>
+
+      <section class="panel" aria-labelledby="h-lyceum">
+        <h2 id="h-lyceum" class="named">
+          <a
+            href="https://github.com/dereth-network/dereth/releases?q=lyceum-v&amp;expanded=true"
+            data-release="lyceum"
+            ><img src="/media/art/lyceum-icon.png" alt="" width="48" height="48" />Lyceum</a
+          >
+        </h2>
+        <p>
+          Lyceum is a world builder. The primary goal is to enable content developers to create,
+          edit, augment, fix, and otherwise express full control over the content in Asheron's Call
+          worlds; past and present.
+        </p>
+        <ul class="bullets">
+          <li>
+            Shape the landscape, paint roads, add and edit NPCs, enemy spawns, buildings, and even
+            entire towns.
+          </li>
+          <li>Play your world live, powered by Dereth and Empyrean, straight from Lyceum.</li>
+          <li>Group world content into composable and shareable "content packs."</li>
+          <li>
+            Empyrean servers can deliver custom content to Dereth clients through live-patching dat
+            overlays, without requiring custom dat files. For servers running ACE, Lyceum can bake
+            custom content into the familiar <code>client_cell_1.dat</code> /
+            <code>client_portal.dat</code> files for server operators to deliver to their players.
+          </li>
+          <li>Supports exports of server SQL content to GDLE-compatible JSON files.</li>
+          <li>
+            Includes a <code>lyceum</code> command-line interface to <code>build</code> and
+            <code>validate</code> dat overlays and server SQL, and <code>bake</code> or
+            <code>import</code> overlays into final dats and vice versa.
           </li>
         </ul>
       </section>
@@ -380,7 +423,7 @@
       <footer class="foot">
         <span
           ><a href="https://github.com/dereth-network/dereth">dereth-network/dereth</a> | Dereth MIT
-          · Empyrean AGPL-3.0</span
+          · Empyrean AGPL-3.0 · Lyceum MIT</span
         >
         <span
           >Dereth is an independent project, not affiliated with or endorsed by any current rights

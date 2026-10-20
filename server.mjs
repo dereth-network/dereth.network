@@ -25,13 +25,13 @@ const TYPES = {
 // local one, for testing); the build reads the same variable to write it into those pages.
 const DEFAULT_HUB_URL = 'https://hub.dereth.network';
 
-// No inline styles or scripts anywhere. The one address the pages may reach besides the site is
-// the hub's origin.
+// No inline styles or scripts anywhere. The pages may reach the hub's origin besides the site, and
+// GitHub's API, where the landing page reads each program's latest release.
 export function contentSecurityPolicy(hubUrl = DEFAULT_HUB_URL) {
   const hub = new URL(hubUrl);
   if (!['http:', 'https:'].includes(hub.protocol) || hub.username || hub.password)
     throw new Error('The hub must be an http(s) URL without credentials');
-  return `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' ${hub.origin}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'`;
+  return `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' ${hub.origin} https://api.github.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'`;
 }
 
 // Pages that moved, by their old address (without its slash), to where they went. None has now:

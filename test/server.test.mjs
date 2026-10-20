@@ -85,10 +85,10 @@ test('hashed files are cached for a year, pages are checked each visit', async (
   assert.equal((await get('/worlds/')).headers.get('cache-control'), 'no-cache');
 });
 
-test('every answer carries the policy, which lets pages reach the hub and nothing else', async () => {
+test('every answer carries the policy, which lets pages reach the hub and GitHub’s API and nothing else', async () => {
   const policy = (await get('/worlds/')).headers.get('content-security-policy');
   assert.equal(policy, contentSecurityPolicy('http://127.0.0.1:8650'));
-  assert.match(policy, /connect-src 'self' http:\/\/127\.0\.0\.1:8650;/);
+  assert.match(policy, /connect-src 'self' http:\/\/127\.0\.0\.1:8650 https:\/\/api\.github\.com;/);
   assert.match(policy, /script-src 'self';/);
   assert.match(policy, /style-src 'self';/);
   assert.doesNotMatch(policy, /unsafe/);
@@ -143,10 +143,13 @@ test('the directory’s pages are served noindex, and no other page is', async (
 });
 
 test('the hub is hub.dereth.network unless another is named', () => {
-  assert.match(contentSecurityPolicy(), /connect-src 'self' https:\/\/hub\.dereth\.network;/);
+  assert.match(
+    contentSecurityPolicy(),
+    /connect-src 'self' https:\/\/hub\.dereth\.network https:\/\/api\.github\.com;/,
+  );
   assert.match(
     contentSecurityPolicy('https://dereth.network/hub'),
-    /connect-src 'self' https:\/\/dereth\.network;/,
+    /connect-src 'self' https:\/\/dereth\.network https:\/\/api\.github\.com;/,
   );
   assert.throws(() => contentSecurityPolicy('ftp://hub.example.org'));
   assert.throws(() => contentSecurityPolicy('https://user:pw@hub.example.org'));
