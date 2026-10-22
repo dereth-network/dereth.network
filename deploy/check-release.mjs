@@ -16,6 +16,7 @@ const PAGES = {
   '/report/': 'Report a world · Dereth Network',
   '/characters/': 'Your characters · Dereth Network',
   '/link/': 'Link a character · Dereth Network',
+  '/join/': 'Join a world · Dereth Network',
   '/directory/': 'Directory · Dereth Network',
   '/directory/character/': 'A character · Directory · Dereth Network',
   '/directory/allegiance/': 'An allegiance · Directory · Dereth Network',

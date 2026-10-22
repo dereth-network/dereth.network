@@ -66,7 +66,7 @@ test('every page builds and passes the release check, with the hub it was built 
   }
   const { code, out } = await check(HUB);
   assert.equal(code, 0, out);
-  assert.match(out, /10 pages/);
+  assert.match(out, /11 pages/);
 });
 
 test('the directory’s pages ask not to be indexed, and robots.txt keeps crawlers out', async () => {
@@ -84,6 +84,12 @@ test('the directory’s pages ask not to be indexed, and robots.txt keeps crawle
   assert.match(robots, /^User-agent: \*\nDisallow: \/directory\/$/m);
   const headers = await readFile(join(release, 'dist', '_headers'), 'utf8');
   assert.match(headers, /^\/directory\/\*\n {2}X-Robots-Tag: noindex$/m);
+});
+
+test('the join page names no hub: it calls nothing, and the world stays in its link', async () => {
+  const html = await readFile(join(release, 'dist', 'join', 'index.html'), 'utf8');
+  assert.match(html, /<title>Join a world · Dereth Network<\/title>/);
+  assert.doesNotMatch(html, /name="dereth-hub"/);
 });
 
 test('a release whose directory page would be indexed fails the check', async () => {

@@ -30,6 +30,7 @@ export default defineConfig({
         report: page('./report/index.html'),
         characters: page('./characters/index.html'),
         link: page('./link/index.html'),
+        join: page('./join/index.html'),
         directory: page('./directory/index.html'),
         'directory-character': page('./directory/character/index.html'),
         'directory-allegiance': page('./directory/allegiance/index.html'),

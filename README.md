@@ -19,6 +19,9 @@ and the Dereth Network's pages for players and world operators.
     the `#`, which no server is sent; signed in with Discord (the page signs you in first, the
     code kept in the tab meanwhile), it links the character to your account at once. A link
     opened without its code offers a box for the code;
+  - `/join/`: a world a friend's launcher links to, its host, port and name after the `#`, which
+    no server is sent: it offers to open the world in Dereth (`dereth://join?...`, which fills in
+    Add world there, nothing more) or to get Dereth. It calls nothing, the hub included;
   - `/characters/`: your linked characters (unlink any) and where each stands in the directory,
     your friends, how tells to them reach your Discord while you aren't playing (where the hub
     has Discord's bot), and forgetting all of it;

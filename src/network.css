@@ -341,6 +341,18 @@ input[aria-invalid='true'] {
   color: #9fdc96;
 }
 
+/* The world a join link names. */
+.world-name {
+  margin: 14px 0 0;
+  font: 600 clamp(22px, 3vw, 28px)/1.2 var(--display);
+  letter-spacing: 0.04em;
+  color: var(--gold-bright);
+  overflow-wrap: anywhere;
+}
+.world-where {
+  margin: 4px 0 0;
+}
+
 /* Something to copy: a key, a token, a command. */
 .copy {
   display: flex;
