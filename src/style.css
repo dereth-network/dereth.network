@@ -180,7 +180,8 @@ a {
   margin: 0 0 14px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--line);
-  font: 600 22px var(--display);
+  /* Smaller on a narrow phone, where a long word would not fit the panel. */
+  font: 600 clamp(18px, 5.5vw, 22px) var(--display);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--gold-bright);
@@ -224,11 +225,15 @@ a {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
+/* Two lines where a phone is too narrow for one. */
 .play {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 72px;
+  min-height: 72px;
+  padding: 4px 8px;
+  text-align: center;
+  line-height: 1.15;
   text-decoration: none;
   border: calc(var(--px) * 4) solid transparent;
   border-image: var(--frame) 4 / calc(var(--px) * 4) stretch;
