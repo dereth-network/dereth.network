@@ -1,12 +1,31 @@
 # dereth.network
 
-The website for Dereth Network: the landing page for the Dereth client and the Empyrean server,
-and the Dereth Network's pages for players and world operators.
+The website for Dereth Network: the landing page for both games' programs (Asheron's Call's
+Dereth, Empyrean and Lyceum; Asheron's Call 2's Auberean, Yalain and Athenaeum), and the Dereth
+Network's pages for players and world operators.
 
-- `index.html`, `src/style.css`, and `src/main.ts` (the before-and-after sliders).
+- The realm: every page is about one game at a time, Dereth's (Asheron's Call, `dereth`) or
+  Auberean's (Asheron's Call 2, `auberean`), picked with the launcher's two portals beside the lockup.
+  `public/realm.js`, a plain script in each page's head, sets `data-realm` on `<html>` before the
+  page is drawn (a game's own home page, `/dereth/` or `/auberean/`, or `?realm=dereth|auberean`
+  in an address picks one; otherwise the one kept in
+  `localStorage`; otherwise Dereth); `src/realm.ts` works the portals, opens the new realm's
+  painting out from the portal picked, and tells the pages; `src/games.ts` holds the two games'
+  names and emulators. The realm sets the accent (teal or violet), the painting, and whatever is
+  marked `data-realm-only`. The realm's name is the hub's `game` too; a world or character that
+  names no `game` is Dereth's, as the launcher
+  reads it.
+- `index.html`, `src/style.css`, and `src/main.ts` (the before-and-after sliders, and the screenshot carousel). The home page
+  holds both realms' words, each marked `data-realm-only`. `/dereth/` and `/auberean/` are the same
+  page opening in that game; the build writes them from `index.html` (`deploy/open-graph.mjs`),
+  each with its own title, description and picture, since a shared link's preview (Discord's, say)
+  reads only the page's tags. Every page carries Open Graph tags made from its own title and
+  description. On the home page, the portals move the address between `/dereth/` and `/auberean/`.
 - The network's pages, each a folder with its `index.html` and a script in `src/pages/`:
-  - `/network/`: what the network is, and its in-game commands;
-  - `/worlds/`: the hub's list of worlds, searched and filtered;
+  - `/network/`: what the network is, the two games it carries (the realm's lit), and its in-game
+    commands;
+  - `/worlds/`: the hub's list of worlds, searched and filtered: by game (the realm's, unless the
+    search or its address names the other, or `game=any` for both, the realm's first);
   - `/operators/`: sign in with Discord, register or claim a world, prove you run it, turn the
     network on or off, get a new key, mirror the world's rooms and the Global room into channels
     of your Discord server (where the hub has Discord's bot), and follow reports; for the hub's
@@ -19,15 +38,21 @@ and the Dereth Network's pages for players and world operators.
     the `#`, which no server is sent; signed in with Discord (the page signs you in first, the
     code kept in the tab meanwhile), it links the character to your account at once. A link
     opened without its code offers a box for the code;
-  - `/join/`: a world a friend's launcher links to, its host, port and name after the `#`, which
-    no server is sent: it offers to open the world in Dereth (`dereth://join?...`, which fills in
-    Add world there, nothing more) or to get Dereth. It calls nothing, the hub included;
-  - `/characters/`: your linked characters (unlink any) and where each stands in the directory,
+  - `/join/`: a world a friend's launcher links to, its host, port, name and game (`dereth`, the
+    default, or `auberean`) after the `#`, which no server is sent: it turns to the link's game
+    and offers to open the world in it (`dereth://join?...`, with `&game=auberean` for
+    Auberean's, which fills in Add world there, nothing more) or to get it. It calls nothing, the
+    hub included;
+  - `/characters/`: your linked characters (unlink any, the realm's game's first) and where each
+    stands in the directory,
     your friends, how tells to them reach your Discord while you aren't playing (where the hub
     has Discord's bot), and forgetting all of it;
   - `/directory/`: the characters on the Dereth Network (`@dn on` lists one, `@dn off` takes it
-    out), searched by name, world, level, heritage and allegiance, by latest change or by level;
-    `/directory/character/?a=Name@world`, a listed character's profile and its allegiance's
+    out), searched by game (the realm's, unless the search or its address names the other or
+    `game=any`), name, world, level, heritage and allegiance, by latest change or by level;
+    `/directory/character/?a=Name@world`, a listed character's profile (an Auberean character's
+    is its level, race, sex, title, allegiance, and its health and vigor at their most) and its
+    allegiance's
     listed members, linked to each other's pages; and `/directory/allegiance/?w=world&k=key`, an
     allegiance's listed members. Every address the directory doesn't show gets the same page.
     Search engines are asked to keep out of all of them (`noindex` in each page, the
@@ -80,7 +105,17 @@ itself, the hub's site origin. The hub needs no change while the site keeps its 
 
 ## The hub
 
-The pages call `https://hub.dereth.network`. To try them against another hub (one on this
+The pages call `https://hub.dereth.network` (0.3.1 or later, which knows both games). They read a
+world's `game` (`dereth` or `auberean`) from `/v1/servers`, which lists Dereth's alone unless asked
+for another with `game=`, so the world list always names one; ask `/v1/directory/characters` for
+one game with `game=` too, and leave out the other game's characters themselves while the hub
+doesn't (each row names its `game`); read an Auberean listing in its own words (`race` 1 Human,
+2 Lugian, 4 Tumerok, 16 Empyrean; `sex` `0x1000` male, `0x2000` female; `vitals.health` and
+`vitals.vigor`, each `base` its maximum); read a linked character's game from its own `game`, else
+its world's in `/v1/network`, else Dereth's; and always name the game in a registration, since the
+hub keeps a world's game when a changed registration names none.
+
+To try them against another hub (one on this
 machine, say), set `DERETH_HUB_URL` for the build or the dev server, and for `npm start`, which
 lets the pages reach it:
 

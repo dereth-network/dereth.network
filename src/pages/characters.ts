@@ -1,6 +1,9 @@
 // Your characters: the signed-in person's linked characters (each can be unlinked; one is linked
 // with the link `@dn link` gives it in game, on the link page), where each stands in the
-// directory, its friends, how tells reach its Discord, and forgetting all of it.
+// directory, its friends, how tells reach its Discord, and forgetting all of it. The characters of
+// the realm's game come first.
+import { GAME_NAMES, gameFirst, gameOf } from '../games.ts';
+import type { Game } from '../games.ts';
 import {
   append,
   busy,
@@ -17,7 +20,8 @@ import { characterHref, listingText } from '../network/directory.ts';
 import { discordFeatures } from '../network/discord.ts';
 import { explain, when } from '../network/format.ts';
 import { HubError } from '../network/hub.ts';
-import type { HubConfig, Person } from '../network/hub.ts';
+import type { HubConfig, Person, PersonCharacter } from '../network/hub.ts';
+import { currentGame, onRealm } from '../realm.ts';
 
 const hub = pageHub();
 const notices = byId('notices');
@@ -28,6 +32,17 @@ const discordPanel = byId('discord');
 const sure = byId<HTMLInputElement>('forget-sure');
 const forgetGo = byId<HTMLButtonElement>('forget-go');
 let config: HubConfig | null = null;
+// The person shown, to show again in the other realm's order.
+let shown: Person | null = null;
+// Each network world's game, by its slug, for a character the hub doesn't name the game of; a
+// character's world the network doesn't list is Dereth's.
+const worldGames = hub
+  .network()
+  .then(({ worlds }) => new Map(worlds.map((w) => [w.slug, gameOf(w)])))
+  .catch(() => new Map<string, Game>());
+let gameOfWorld = new Map<string, Game>();
+const characterGame = (c: PersonCharacter): Game =>
+  c.game ? gameOf(c) : (gameOfWorld.get(c.world.slug) ?? 'dereth');
 
 function showSignIn() {
   for (const p of panels) p.hidden = true;
@@ -43,14 +58,27 @@ function refused(error: unknown) {
 }
 
 function render(person: Person) {
+  shown = person;
   byId('who').textContent = person.name;
   const list = byId('characters');
-  if (person.characters.length === 0) {
+  const game = currentGame();
+  const characters = gameFirst(person.characters, game, characterGame);
+  // Both games' characters: each game's under its name.
+  const both =
+    characters.some((c) => characterGame(c) !== game) &&
+    characters.some((c) => characterGame(c) === game);
+  let heading: Game | null = null;
+  if (characters.length === 0) {
     fill(list, h('p', { class: 'empty' }, 'No character is linked yet.'));
   } else {
     fill(
       list,
-      ...person.characters.map((c) => {
+      ...characters.flatMap((c) => {
+        let head: HTMLElement | null = null;
+        if (both && characterGame(c) !== heading) {
+          heading = characterGame(c);
+          head = h('p', { class: 'group' }, GAME_NAMES[heading]);
+        }
         const unlink = h('button', { class: 'btn small', type: 'button' }, 'Unlink');
         unlink.addEventListener('click', async () => {
           fill(notices);
@@ -64,7 +92,7 @@ function render(person: Person) {
         });
         const listed = c.listing === 'listed';
         const state = listingText(c.listing);
-        return h(
+        const item = h(
           'div',
           { class: 'char-item' },
           h(
@@ -91,6 +119,7 @@ function render(person: Person) {
           ),
           h('div', { class: 'char-actions' }, unlink),
         );
+        return head ? [head, item] : [item];
       }),
     );
   }
@@ -128,10 +157,15 @@ function render(person: Person) {
 }
 
 async function refresh() {
-  const person = await hub.person();
+  const [person, games] = await Promise.all([hub.person(), worldGames]);
+  gameOfWorld = games;
   if (!person) return showSignIn();
   render(person);
 }
+
+onRealm(() => {
+  if (shown && !byId('home').hidden) render(shown);
+});
 
 sure.addEventListener('change', () => {
   forgetGo.disabled = !sure.checked;

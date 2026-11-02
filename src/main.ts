@@ -26,5 +26,30 @@ for (const slider of document.querySelectorAll<HTMLElement>('[data-slider]')) {
   slider.addEventListener('pointercancel', () => (dragging = false));
 }
 
+// The screenshot carousels: a dot for each slide, the one shown lit; the buttons and dots scroll
+// the track to a slide, and scrolling it by hand (or by its arrow keys) lights the dot it stops on.
+for (const carousel of document.querySelectorAll<HTMLElement>('[data-carousel]')) {
+  const track = carousel.querySelector<HTMLElement>('.track');
+  const dots = carousel.querySelector<HTMLElement>('.dots');
+  if (!track || !dots) continue;
+  const slides = [...track.children] as HTMLElement[];
+  const at = () => Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+  const go = (i: number) =>
+    track.scrollTo({ left: ((i + slides.length) % slides.length) * track.clientWidth });
+  const marks = slides.map((_, i) => {
+    const dot = document.createElement('button');
+    dot.type = 'button';
+    dot.setAttribute('aria-label', `Screenshot ${i + 1}`);
+    dot.addEventListener('click', () => go(i));
+    return dot;
+  });
+  dots.append(...marks);
+  const light = () => marks.forEach((m, i) => m.setAttribute('aria-current', String(i === at())));
+  light();
+  track.addEventListener('scroll', light, { passive: true });
+  for (const step of carousel.querySelectorAll<HTMLElement>('[data-step]'))
+    step.addEventListener('click', () => go(at() + Number(step.dataset.step)));
+}
+
 // Each program's heading links to its latest release.
 void linkReleases();

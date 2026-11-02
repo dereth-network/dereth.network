@@ -155,6 +155,14 @@ export const HERITAGES: Record<number, string> = {
   13: 'Olthoi Spitter',
 };
 
+/** Auberean's (Asheron's Call 2's) race names by the game's number for each playable race. */
+export const AUBEREAN_RACES: Record<number, string> = {
+  1: 'Human',
+  2: 'Lugian',
+  4: 'Tumerok',
+  16: 'Empyrean',
+};
+
 const ALUVIAN_MALE = [
   'Yeoman',
   'Baronet',

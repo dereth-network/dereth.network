@@ -10,7 +10,9 @@ import { pathToFileURL } from 'node:url';
 // Every page, by its address, and its title.
 const PAGES = {
   '/': 'Dereth Network',
-  '/network/': 'The Dereth Network',
+  '/dereth/': 'Dereth · Dereth Network',
+  '/auberean/': 'Auberean · Dereth Network',
+  '/network/': 'Network · Dereth Network',
   '/worlds/': 'Worlds · Dereth Network',
   '/operators/': 'Operators · Dereth Network',
   '/report/': 'Report a world · Dereth Network',
@@ -97,6 +99,13 @@ try {
       assert.equal(page.headers.get('x-robots-tag'), null, `${path} must stay indexable`);
     }
     for (const m of html.matchAll(/(?:src|href)="(\/[^"/][^"]*)"/g)) named.add(m[1]);
+    // What a shared link shows: the page's title, and a picture the release holds.
+    assert.match(html, /<meta property="og:title" content="[^"]+"/, `${path} has no og:title`);
+    const card = html.match(
+      /<meta property="og:image" content="https:\/\/dereth\.network(\/[^"]+)"/,
+    );
+    assert.ok(card, `${path} has no og:image on the site`);
+    named.add(card[1]);
   }
   // Every file a page names (its stylesheet, script, images, fonts) is in the release.
   assert.ok(named.size > 0);

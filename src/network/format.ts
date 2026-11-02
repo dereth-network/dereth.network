@@ -1,5 +1,7 @@
 // What the network pages say about worlds, operators' worlds and the hub's refusals, in plain
 // words. No DOM here, so all of it can be checked without a browser.
+import { EMULATORS, gameOf } from '../games.ts';
+import type { Game } from '../games.ts';
 import { HubError } from './hub.ts';
 import type { Approval, AuditEvent, NetworkWorld, Registration, Report, World } from './hub.ts';
 
@@ -368,6 +370,7 @@ export function auditText(event: AuditEvent, me: string | null): string {
 
 /** The registration form's fields, as typed. */
 export interface RegistrationFields {
+  game: Game;
   slug: string;
   name: string;
   description: string;
@@ -385,10 +388,13 @@ export interface RegistrationFields {
   version: string;
 }
 
-/** A world's registration as the form starts it: blank for a new world, or as it stands. */
-export function fieldsOf(world: World | null): RegistrationFields {
+/** A world's registration as the form starts it: blank for a new world of `game`, or as it
+ * stands. */
+export function fieldsOf(world: World | null, game: Game = 'dereth'): RegistrationFields {
   const e = world?.endpoint;
+  const plays = world ? gameOf(world) : game;
   return {
+    game: plays,
     slug: world?.slug ?? '',
     name: world?.name ?? '',
     description: world?.description ?? '',
@@ -402,7 +408,7 @@ export function fieldsOf(world: World | null): RegistrationFields {
     address: e?.mode === 'manual' ? (e.address ?? '') : '',
     port: e ? String(e.port) : '9000',
     addressFamily: e?.addressFamily ?? 'ipv4',
-    family: world?.emulator?.family ?? 'ACE',
+    family: world?.emulator?.family ?? EMULATORS[plays][0],
     version: world?.emulator?.version ?? '',
   };
 }
@@ -428,6 +434,8 @@ export function toRegistration(f: RegistrationFields): Registration {
         : { mode: 'manual', address: trim(f.address), port: Number(f.port) },
     emulator: { family: trim(f.family) },
   };
+  // Always said: the hub keeps a world's game when a changed registration names none.
+  registration.game = f.game;
   if (trim(f.website)) registration.website = trim(f.website);
   if (trim(f.discord)) registration.discord = trim(f.discord);
   if (trim(f.version)) registration.emulator.version = trim(f.version);

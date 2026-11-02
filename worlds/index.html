@@ -6,31 +6,81 @@
     <meta name="theme-color" content="#0c0a10" />
     <meta
       name="description"
-      content="The Asheron's Call worlds the Dereth Network's hub knows: who's online, how many are playing, their rules, and which are on the network."
+      content="The Asheron's Call and Asheron's Call 2 worlds the Dereth Network's hub knows: who's online, how many are playing, their rules, and which are on the network."
     />
     <meta name="dereth-hub" content="%DERETH_HUB_URL%" />
-    <link rel="icon" href="/media/art/dereth-icon.png" type="image/png" />
+    <link rel="icon" href="/media/art/network-icon.png" type="image/png" />
+    <script src="/realm.js"></script>
     <link rel="preload" href="/media/fonts/Cinzel-var.ttf" as="font" type="font/ttf" crossorigin />
     <link rel="stylesheet" href="/src/style.css" />
     <link rel="stylesheet" href="/src/network.css" />
+    <script type="module" src="/src/realm.ts"></script>
     <script type="module" src="/src/pages/worlds.ts"></script>
     <title>Worlds · Dereth Network</title>
   </head>
   <body>
-    <div class="vista" aria-hidden="true"><img src="/media/art/obsidian-bridge.webp" alt="" /></div>
+    <div class="vista" aria-hidden="true">
+      <img src="/media/art/obsidian-bridge.webp" alt="" data-realm-of="dereth" loading="lazy" />
+      <img src="/media/art/tyrant.webp" alt="" data-realm-of="auberean" loading="lazy" />
+    </div>
 
     <div class="page">
       <header class="top">
-        <a class="lockup" href="/" aria-label="Dereth Network">
-          <img src="/media/art/emblem.png" alt="" width="60" height="60" />
-          <span class="word">DERETH<br />NETWORK</span>
-        </a>
+        <div class="brand">
+          <a class="lockup" href="/" aria-label="Dereth Network">
+            <img src="/media/art/network.webp" alt="" width="60" height="60" />
+            <span class="word">DERETH<br />NETWORK</span>
+          </a>
+          <div class="realm" role="radiogroup" aria-label="Game">
+            <button
+              class="pick"
+              type="button"
+              role="radio"
+              aria-checked="false"
+              data-realm-pick="dereth"
+              aria-label="Dereth, Asheron's Call"
+            >
+              <span class="portal" aria-hidden="true"
+                ><img
+                  class="vortex"
+                  src="/media/portal/dereth-vortex.webp"
+                  alt=""
+                  width="52"
+                  height="52" /><img
+                  src="/media/portal/dereth-ring.webp"
+                  alt=""
+                  width="52"
+                  height="52"
+              /></span>
+              Dereth<small>Asheron's Call</small>
+            </button>
+            <button
+              class="pick"
+              type="button"
+              role="radio"
+              aria-checked="false"
+              data-realm-pick="auberean"
+              aria-label="Auberean, Asheron's Call 2"
+            >
+              <span class="portal" aria-hidden="true"
+                ><img
+                  class="vortex"
+                  src="/media/portal/auberean-vortex.webp"
+                  alt=""
+                  width="52"
+                  height="52" /><img
+                  src="/media/portal/auberean-ring.webp"
+                  alt=""
+                  width="52"
+                  height="52"
+              /></span>
+              Auberean<small>Asheron's Call 2</small>
+            </button>
+          </div>
+        </div>
         <nav class="rail" aria-label="Site">
-          <a href="https://play.dereth.network/?server=https://retail.dereth.network/status"
-            >Play</a
-          >
           <a href="/network/" aria-current="true">Network</a>
-          <a href="https://github.com/dereth-network/dereth/releases">Download</a>
+          <a href="https://github.com/dereth-network/dereth/releases/latest">Download</a>
           <a href="https://github.com/dereth-network/dereth">Source</a>
         </nav>
       </header>
@@ -44,7 +94,7 @@
           Dereth Network support cross-world communication.
         </p>
         <p class="summary" id="summary" hidden></p>
-        <form class="toolbar" id="filters" role="search">
+        <form class="toolbar worlds-search" id="filters" role="search">
           <label class="field">
             <span>Search</span>
             <input
@@ -55,6 +105,14 @@
               autocomplete="off"
               maxlength="100"
             />
+          </label>
+          <label class="field">
+            <span>Game</span>
+            <select id="game" name="game">
+              <option value="dereth">Dereth</option>
+              <option value="auberean">Auberean</option>
+              <option value="any">Any</option>
+            </select>
           </label>
           <label class="field">
             <span>Rules</span>
@@ -84,8 +142,8 @@
           <a href="/report/">Report a world</a></span
         >
         <span
-          >Dereth is an independent project, not affiliated with or endorsed by any current rights
-          holder.</span
+          >Dereth Network and all of its projects are independent, not affiliated with or endorsed
+          by any current rights holder.</span
         >
       </footer>
     </div>

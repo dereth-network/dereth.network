@@ -1,5 +1,7 @@
 // The form that registers a world, or changes its registration. Its fields follow the hub's
 // registration body; the hub checks them again and says what it refuses.
+import { EMULATORS, GAMES, GAME_NAMES, isGame } from '../games.ts';
+import type { Game } from '../games.ts';
 import { busy, errorNotice, fill, h } from './dom.ts';
 import { RULESETS, fieldsOf, slugAdvice, toRegistration } from './format.ts';
 import type { RegistrationFields } from './format.ts';
@@ -10,6 +12,8 @@ let forms = 0;
 export interface RegistrationFormOptions {
   /** The world as it stands, to change it; null to register a new one. */
   world: World | null;
+  /** The game a new world starts in: the realm the page is in. */
+  game?: Game;
   submit: string;
   onSubmit: (registration: Registration) => Promise<void>;
   onCancel?: () => void;
@@ -17,7 +21,7 @@ export interface RegistrationFormOptions {
 
 export function registrationForm(options: RegistrationFormOptions): HTMLFormElement {
   const n = ++forms;
-  const start = fieldsOf(options.world);
+  const start = fieldsOf(options.world, options.game);
   const editing = options.world !== null;
   const text = (name: string, value: string, attrs: Record<string, string | boolean> = {}) =>
     h('input', { type: 'text', name, value, autocomplete: 'off', id: `reg${n}-${name}`, ...attrs });
@@ -85,19 +89,9 @@ export function registrationForm(options: RegistrationFormOptions): HTMLFormElem
   const description = h('textarea', { name: 'description', maxlength: '2000', rows: '3' });
   description.value = start.description;
 
-  // Where players connect: a fixed address, or the one the world's server reports from.
-  const radio = (value: 'manual' | 'observed', label: string) => {
-    const input = h('input', {
-      type: 'radio',
-      name: `reg${n}-mode`,
-      value,
-      checked: start.mode === value,
-    });
-    return { input, label: h('label', { class: 'choice' }, input, h('span', {}, label)) };
-  };
-  const manual = radio('manual', 'A fixed address');
-  const observed = radio('observed', 'The address its server reports from');
+  // Where players connect: a fixed address and its port.
   const address = text('address', start.address, {
+    required: true,
     maxlength: '253',
     spellcheck: 'false',
     placeholder: 'play.leafcull.example.org',
@@ -110,39 +104,38 @@ export function registrationForm(options: RegistrationFormOptions): HTMLFormElem
     max: '65535',
     required: true,
   });
-  const family = h(
-    'select',
-    { name: 'addressFamily' },
-    h('option', { value: 'ipv4', selected: start.addressFamily !== 'ipv6' }, 'IPv4'),
-    h('option', { value: 'ipv6', selected: start.addressFamily === 'ipv6' }, 'IPv6'),
-  );
   const addressField = field(
     'Address',
     address,
     'The host name or public IP address players connect to.',
   );
-  const familyField = field('Reported over', family);
-  const showMode = () => {
-    const fixed = manual.input.checked;
-    addressField.hidden = !fixed;
-    address.required = fixed;
-    familyField.hidden = fixed;
-  };
-  showMode();
-  manual.input.addEventListener('change', showMode);
-  observed.input.addEventListener('change', showMode);
 
-  const emulators = h(
-    'datalist',
-    { id: `reg${n}-emulators` },
-    ...['ACE', 'Empyrean', 'GDLE'].map((e) => h('option', { value: e })),
+  // The game it plays, which the emulators offered follow: choosing another game puts its first
+  // emulator in, whatever was there, and clears the version, which was the other emulator's.
+  const gameChoice = h(
+    'select',
+    { name: 'game' },
+    ...GAMES.map((g) => h('option', { value: g, selected: start.game === g }, GAME_NAMES[g])),
   );
+  const game = (): Game => (isGame(gameChoice.value) ? gameChoice.value : start.game);
+  const emulators = h('datalist', { id: `reg${n}-emulators` });
   const emulator = text('family', start.family, {
     required: true,
     maxlength: '60',
     list: `reg${n}-emulators`,
   });
-  const version = text('version', start.version, { maxlength: '60', placeholder: '1.77' });
+  const version = text('version', start.version, { maxlength: '60' });
+  const showGame = () => {
+    const plays = game();
+    fill(emulators, ...EMULATORS[plays].map((e) => h('option', { value: e })));
+    version.placeholder = plays === 'dereth' ? '1.77' : '0.1.0';
+  };
+  showGame();
+  gameChoice.addEventListener('change', () => {
+    showGame();
+    emulator.value = EMULATORS[game()][0];
+    version.value = '';
+  });
   const demo = h('input', { type: 'checkbox', name: 'isDemo', checked: start.isDemo });
 
   const messages = h('div', { class: 'notices' });
@@ -158,6 +151,7 @@ export function registrationForm(options: RegistrationFormOptions): HTMLFormElem
       { class: 'form-grid' },
       field('Slug', slug, slugHint),
       field('Name', name, 'As players see it, up to 80 characters.'),
+      field('Game', gameChoice),
       field('Rules', ruleset),
       field('Region', region),
       field('Website', website),
@@ -170,20 +164,13 @@ export function registrationForm(options: RegistrationFormOptions): HTMLFormElem
       'fieldset',
       {},
       h('legend', {}, 'Where players connect'),
-      manual.label,
-      observed.label,
-      h('div', { class: 'form-grid' }, addressField, familyField, field('Port', port)),
-      h(
-        'p',
-        { class: 'hint' },
-        'A world whose address is the one it reports from can only be proven in game.',
-      ),
+      h('div', { class: 'form-grid' }, addressField, field('Port', port)),
     ),
     h(
       'div',
       { class: 'form-grid' },
       field('Emulator', emulator),
-      field('Its version', version),
+      field('Version', version),
       emulators,
     ),
     h('label', { class: 'choice' }, demo, h('span', {}, 'A demo or test world')),
@@ -199,6 +186,7 @@ export function registrationForm(options: RegistrationFormOptions): HTMLFormElem
   );
 
   const read = (): RegistrationFields => ({
+    game: game(),
     slug: slug.value,
     name: name.value,
     description: description.value,
@@ -208,10 +196,10 @@ export function registrationForm(options: RegistrationFormOptions): HTMLFormElem
     website: website.value,
     discord: discord.value,
     isDemo: demo.checked,
-    mode: observed.input.checked ? 'observed' : 'manual',
+    mode: 'manual',
     address: address.value,
     port: port.value,
-    addressFamily: family.value,
+    addressFamily: start.addressFamily,
     family: emulator.value,
     version: version.value,
   });

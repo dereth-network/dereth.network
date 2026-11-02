@@ -6,34 +6,84 @@
     <meta name="theme-color" content="#0c0a10" />
     <meta
       name="description"
-      content="Dereth is an open Asheron's Call client for Windows, macOS, Linux and the browser, with Empyrean, a Rust port of ACE, Lyceum, a world builder, and a launcher for the community's worlds."
+      content="Dereth and Auberean: open clients for Asheron's Call and Asheron's Call 2, with their servers, Empyrean and Yalain, their world builders, Lyceum and Athenaeum, and the Dereth Network that links the community's worlds."
     />
-    <link rel="icon" href="/media/art/dereth-icon.png" type="image/png" />
+    <link rel="icon" href="/media/art/network-icon.png" type="image/png" />
+    <script src="/realm.js"></script>
     <link rel="preload" href="/media/fonts/Cinzel-var.ttf" as="font" type="font/ttf" crossorigin />
     <link rel="stylesheet" href="/src/style.css" />
+    <script type="module" src="/src/realm.ts"></script>
     <script type="module" src="/src/main.ts"></script>
     <title>Dereth Network</title>
   </head>
   <body>
-    <div class="vista" aria-hidden="true"><img src="/media/art/obsidian-bridge.webp" alt="" /></div>
+    <div class="vista" aria-hidden="true">
+      <img src="/media/art/obsidian-bridge.webp" alt="" data-realm-of="dereth" loading="lazy" />
+      <img src="/media/art/tyrant.webp" alt="" data-realm-of="auberean" loading="lazy" />
+    </div>
 
     <div class="page">
       <header class="top">
-        <a class="lockup" href="./" aria-label="Dereth Network">
-          <img src="/media/art/emblem.png" alt="" width="60" height="60" />
-          <span class="word">DERETH<br />NETWORK</span>
-        </a>
+        <div class="brand">
+          <a class="lockup" href="/" aria-label="Dereth Network">
+            <img src="/media/art/network.webp" alt="" width="60" height="60" />
+            <span class="word">DERETH<br />NETWORK</span>
+          </a>
+          <div class="realm" role="radiogroup" aria-label="Game">
+            <button
+              class="pick"
+              type="button"
+              role="radio"
+              aria-checked="false"
+              data-realm-pick="dereth"
+              aria-label="Dereth, Asheron's Call"
+            >
+              <span class="portal" aria-hidden="true"
+                ><img
+                  class="vortex"
+                  src="/media/portal/dereth-vortex.webp"
+                  alt=""
+                  width="52"
+                  height="52" /><img
+                  src="/media/portal/dereth-ring.webp"
+                  alt=""
+                  width="52"
+                  height="52"
+              /></span>
+              Dereth<small>Asheron's Call</small>
+            </button>
+            <button
+              class="pick"
+              type="button"
+              role="radio"
+              aria-checked="false"
+              data-realm-pick="auberean"
+              aria-label="Auberean, Asheron's Call 2"
+            >
+              <span class="portal" aria-hidden="true"
+                ><img
+                  class="vortex"
+                  src="/media/portal/auberean-vortex.webp"
+                  alt=""
+                  width="52"
+                  height="52" /><img
+                  src="/media/portal/auberean-ring.webp"
+                  alt=""
+                  width="52"
+                  height="52"
+              /></span>
+              Auberean<small>Asheron's Call 2</small>
+            </button>
+          </div>
+        </div>
         <nav class="rail" aria-label="Site">
-          <a href="https://play.dereth.network/?server=https://retail.dereth.network/status"
-            >Play</a
-          >
           <a href="/network/">Network</a>
-          <a href="https://github.com/dereth-network/dereth/releases">Download</a>
+          <a href="https://github.com/dereth-network/dereth/releases/latest">Download</a>
           <a href="https://github.com/dereth-network/dereth">Source</a>
         </nav>
       </header>
 
-      <section class="panel intro" aria-labelledby="h-intro">
+      <section class="panel intro lit" aria-labelledby="h-intro" data-realm-only="dereth">
         <div>
           <h1 id="h-intro">
             Introducing Dereth<span>a modern, open-source Asheron's Call client</span>
@@ -74,7 +124,7 @@
         </div>
       </section>
 
-      <section class="panel" aria-labelledby="h-dereth">
+      <section class="panel" aria-labelledby="h-dereth" data-realm-only="dereth">
         <h2 id="h-dereth" class="named">
           <a
             href="https://github.com/dereth-network/dereth/releases?q=dereth-v&amp;expanded=true"
@@ -143,7 +193,7 @@
         </ul>
       </section>
 
-      <section class="panel" aria-labelledby="h-emp">
+      <section class="panel" aria-labelledby="h-emp" data-realm-only="dereth">
         <h2 id="h-emp" class="named">
           <a
             href="https://github.com/dereth-network/dereth/releases?q=empyrean-v&amp;expanded=true"
@@ -182,7 +232,7 @@
         </ul>
       </section>
 
-      <section class="panel" aria-labelledby="h-lyceum">
+      <section class="panel" aria-labelledby="h-lyceum" data-realm-only="dereth">
         <h2 id="h-lyceum" class="named">
           <a
             href="https://github.com/dereth-network/dereth/releases?q=lyceum-v&amp;expanded=true"
@@ -217,7 +267,7 @@
         </ul>
       </section>
 
-      <section class="panel" aria-labelledby="h-look">
+      <section class="panel" aria-labelledby="h-look" data-realm-only="dereth">
         <h2 id="h-look">Screenshots</h2>
         <div class="shots">
           <div class="compare">
@@ -386,7 +436,7 @@
         </div>
       </section>
 
-      <div class="two">
+      <div class="two" data-realm-only="dereth">
         <section class="panel" aria-labelledby="h-thanks">
           <h2 id="h-thanks">Acknowledgements</h2>
           <p>
@@ -395,8 +445,9 @@
             and the community's extensive packet-capture archives. Thank you!
           </p>
           <p>
-            Dereth is built with an AI coding assistant doing much of the typing. It's open source,
-            so you can check its work yourself, but if AI is a deal-breaker for you, now you know.
+            Everything in the Dereth Network project is built with an AI coding assistant doing much
+            of the typing. It's all open source, so you can check it yourself, but if AI is a
+            deal-breaker for you, now you know.
           </p>
         </section>
         <section class="panel" aria-labelledby="h-expect">
@@ -420,14 +471,201 @@
         </section>
       </div>
 
+      <section class="panel intro lit" aria-labelledby="h-aub-intro" data-realm-only="auberean">
+        <div>
+          <h1 id="h-aub-intro">
+            Introducing Auberean<span>a modern, open-source Asheron's Call 2 client</span>
+          </h1>
+          <p class="note">
+            You'll need the <a href="https://search.accpp.net/#f=2972122">game data files</a>; none
+            are included.
+          </p>
+        </div>
+        <div class="actions">
+          <div class="plate">
+            <a class="play" href="https://github.com/dereth-network/dereth/releases/latest"
+              >GET AUBEREAN</a
+            >
+            <p class="also">(a web client is coming soon)</p>
+          </div>
+          <div class="row">
+            <a class="btn" href="https://github.com/dereth-network/dereth/releases">Download</a>
+            <a class="btn" href="https://github.com/dereth-network/dereth">Source</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-auberean" data-realm-only="auberean">
+        <h2 id="h-auberean" class="named">
+          <a
+            href="https://github.com/dereth-network/dereth/releases?q=auberean-v&amp;expanded=true"
+            data-release="auberean"
+            ><img src="/media/art/auberean-icon.png" alt="" width="48" height="48" />Auberean</a
+          >
+        </h2>
+        <p>
+          Auberean aims to be a retail-faithful client, fully compatible with the last-released
+          Asheron's Call 2 client. It is built on the same shared core as Dereth.
+        </p>
+        <ul class="bullets">
+          <li>Runs natively on Windows, macOS and Linux.</li>
+          <li>
+            Integrated with the Dereth Network, for cross-world and cross-game communication and
+            friends.
+          </li>
+          <li>
+            Uses the same launcher as Dereth, so you can run Auberean (or your own retail Asheron's
+            Call 2 client) and connect to any community-hosted world, or your own local world.
+          </li>
+        </ul>
+      </section>
+
+      <section class="panel" aria-labelledby="h-yalain" data-realm-only="auberean">
+        <h2 id="h-yalain" class="named">
+          <a
+            href="https://github.com/dereth-network/dereth/releases?q=yalain-v&amp;expanded=true"
+            data-release="yalain"
+            ><img src="/media/art/yalain-icon.png" alt="" width="48" height="48" />Yalain</a
+          >
+        </h2>
+        <p>
+          Yalain is an Asheron's Call 2 server emulator aiming, initially, to revive the world as it
+          existed when retail service ended.
+        </p>
+        <ul class="bullets">
+          <li>Runs natively on Windows, macOS and Linux.</li>
+          <li>
+            Run your own world directly from within the launcher and (optionally) invite other
+            players in.
+          </li>
+          <li>
+            Its world data is in its infancy, seeded by the fairly limited set of packet captures
+            the community recorded before the end of retail.
+          </li>
+        </ul>
+      </section>
+
+      <section class="panel" aria-labelledby="h-athenaeum" data-realm-only="auberean">
+        <h2 id="h-athenaeum" class="named">
+          <a
+            href="https://github.com/dereth-network/dereth/releases?q=athenaeum-v&amp;expanded=true"
+            data-release="athenaeum"
+            ><img src="/media/art/athenaeum-icon.png" alt="" width="48" height="48" />Athenaeum</a
+          >
+        </h2>
+        <p>Athenaeum is a world builder for Asheron's Call 2.</p>
+        <ul class="bullets">
+          <li>Runs natively on Windows, macOS and Linux.</li>
+          <li>
+            Start from the established world base and help contribute retail-accurate content in an
+            easy-to-use, WYSIWYG editor.
+          </li>
+          <li>
+            Create custom content for your own servers, and use Auberean to experience
+            <em>your</em> vision for Asheron's Call 2.
+          </li>
+        </ul>
+      </section>
+
+      <section class="panel" aria-labelledby="h-aub-look" data-realm-only="auberean">
+        <h2 id="h-aub-look">Screenshots</h2>
+        <!-- A slide each: its screenshot, shown whole in a frame the shape of the wide shots. -->
+        <div class="carousel" data-carousel>
+          <div class="track" tabindex="0" aria-label="Screenshots">
+            <figure class="slide">
+              <img
+                src="/media/auberean/combat.webp"
+                alt="Fighting a Drudge Sentinel with a bow, with the examine and inventory windows open"
+                width="2145"
+                height="1254"
+                loading="lazy"
+              />
+            </figure>
+            <figure class="slide">
+              <img
+                src="/media/auberean/character.webp"
+                alt="Making a character: the races and sexes, each to click and choose"
+                width="2145"
+                height="1254"
+                loading="lazy"
+              />
+            </figure>
+            <figure class="slide">
+              <img
+                src="/media/auberean/quest.webp"
+                alt="Rescue the Shelter Hold: looting a Drudge Digger in the tunnel, with the quest window open"
+                width="2145"
+                height="1254"
+                loading="lazy"
+              />
+            </figure>
+            <figure class="slide">
+              <img
+                src="/media/auberean/athenaeum.webp"
+                alt="Athenaeum: a camp selected on a snowy slope, the rows near the camera listed on the left"
+                width="2136"
+                height="1253"
+                loading="lazy"
+              />
+            </figure>
+            <figure class="slide">
+              <img
+                src="/media/auberean/launcher.webp"
+                alt="The launcher in Auberean, ready to play"
+                width="1654"
+                height="1098"
+                loading="lazy"
+              />
+            </figure>
+          </div>
+          <div class="controls">
+            <button class="btn" type="button" data-step="-1" aria-label="Previous screenshot">
+              &lsaquo;
+            </button>
+            <div class="dots"></div>
+            <button class="btn" type="button" data-step="1" aria-label="Next screenshot">
+              &rsaquo;
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <div class="two" data-realm-only="auberean">
+        <section class="panel" aria-labelledby="h-aub-thanks">
+          <h2 id="h-aub-thanks">Acknowledgements</h2>
+          <p>
+            Auberean and Yalain owe everything to the intrepid community who archived old data and
+            recorded packet captures before the world went dark. Thank you!
+          </p>
+          <p>
+            Everything in the Dereth Network project is built with an AI coding assistant doing much
+            of the typing. It's all open source, so you can check it yourself, but if AI is a
+            deal-breaker for you, now you know.
+          </p>
+        </section>
+        <section class="panel" aria-labelledby="h-aub-expect">
+          <h2 id="h-aub-expect">What to expect</h2>
+          <p>
+            Auberean, Yalain and Athenaeum are the newest part of the project, and the youngest:
+            expect rough edges, and parts of the game that aren't in yet.
+          </p>
+          <p>
+            Bugs go to <a href="https://github.com/dereth-network/dereth/issues">Issues</a> and
+            questions to
+            <a href="https://github.com/dereth-network/dereth/discussions">Discussions</a>.
+          </p>
+        </section>
+      </div>
+
       <footer class="foot">
         <span
-          ><a href="https://github.com/dereth-network/dereth">dereth-network/dereth</a> | Dereth MIT
-          · Empyrean AGPL-3.0 · Lyceum MIT</span
+          ><a href="https://github.com/dereth-network/dereth">dereth-network/dereth</a> |
+          <span data-realm-only="dereth">Dereth MIT · Empyrean AGPL-3.0 · Lyceum MIT</span
+          ><span data-realm-only="auberean">Auberean MIT · Yalain MIT · Athenaeum MIT</span></span
         >
         <span
-          >Dereth is an independent project, not affiliated with or endorsed by any current rights
-          holder.</span
+          >Dereth Network and all of its projects are independent, not affiliated with or endorsed
+          by any current rights holder.</span
         >
       </footer>
     </div>

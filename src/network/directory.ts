@@ -1,9 +1,11 @@
 // What the directory's pages show: a search's results, a listed character's profile and its
 // allegiance's listed members, and the one page for a character the directory does not show. No
 // DOM here, so all of it can be checked without a browser.
-import { AUGMENTATIONS, HERITAGES, SKILLS, rankTitle } from './game.ts';
+import { gameOf, isGame } from '../games.ts';
+import { AUBEREAN_RACES, AUGMENTATIONS, HERITAGES, SKILLS, rankTitle } from './game.ts';
 import type {
   AllegiancePage,
+  AubereanVitals,
   AttributeName,
   Hub,
   ListingState,
@@ -82,6 +84,20 @@ export function heritageName(heritage: number): string {
 
 export function genderName(gender: number): string {
   return gender === 2 ? 'female' : 'male';
+}
+
+/** A character's level, heritage (Auberean's race) and sex, as its game names them. */
+export function standingText(c: DirectoryEntry): string {
+  if (gameOf(c) !== 'auberean')
+    return `Level ${count(c.level)} ${heritageName(c.heritage)}, ${genderName(c.gender)}`;
+  const race = c.race !== undefined ? (AUBEREAN_RACES[c.race] ?? `Race ${c.race}`) : 'Unknown';
+  const sex = c.sex === 0x2000 ? 'female' : 'male';
+  return `Level ${count(c.level)} ${race}, ${sex}`;
+}
+
+/** A character's allegiance rank: its title where Dereth has one; Auberean's are shown as ranks. */
+export function rankOf(c: DirectoryEntry, rank: number): string {
+  return gameOf(c) === 'auberean' ? `Rank ${rank}` : rankText(rank, c.heritage, c.gender);
 }
 
 /** A rank as its title for the character's heritage and gender, where the game has one. */
@@ -178,6 +194,8 @@ export function queryFrom(params: URLSearchParams): DirectoryQuery {
   if (heritage !== undefined) query.heritage = heritage;
   const allegiance = params.get('allegiance')?.trim();
   if (allegiance && searchable(allegiance, false)) query.allegiance = allegiance;
+  const game = params.get('game');
+  if (isGame(game)) query.game = game;
   const sort = params.get('sort');
   if (sort === 'level') query.sort = 'level';
   return query;
@@ -192,6 +210,7 @@ export function paramsOf(query: DirectoryQuery): URLSearchParams {
   if (query.levelMax !== undefined) params.set('level_max', String(query.levelMax));
   if (query.heritage !== undefined) params.set('heritage', String(query.heritage));
   if (query.allegiance) params.set('allegiance', query.allegiance);
+  if (query.game) params.set('game', query.game);
   if (query.sort === 'level') params.set('sort', 'level');
   return params;
 }
@@ -219,10 +238,8 @@ function characterLink(address: string): View {
 export function entryView(entry: DirectoryEntry, { withPatron = false } = {}): View {
   const al = entry.allegiance;
   const facts = [
-    `Level ${count(entry.level)} ${heritageName(entry.heritage)}, ${genderName(entry.gender)}`,
-    al
-      ? `${rankText(al.rank, entry.heritage, entry.gender)}${al.name ? ` of ${al.name}` : ''}`
-      : '',
+    standingText(entry),
+    al ? `${rankOf(entry, al.rank)}${al.name ? ` of ${al.name}` : ''}` : '',
   ].filter(Boolean);
   return v(
     'li',
@@ -278,7 +295,7 @@ function allegianceView(c: DirectoryCharacter, members: AllegiancePage | null): 
       'dl',
       { class: 'rows' },
       row('Allegiance', [al.name, size].filter(Boolean).join(' · ') || 'Unnamed'),
-      row('Rank', rankText(al.rank, c.heritage, c.gender)),
+      row('Rank', rankOf(c, al.rank)),
       al.patron ? row('Patron', characterLink(al.patron)) : null,
       al.monarch ? row('Monarch', characterLink(al.monarch)) : null,
     ),
@@ -298,7 +315,7 @@ function allegianceView(c: DirectoryCharacter, members: AllegiancePage | null): 
                 v(
                   'span',
                   { class: 'muted' },
-                  ` · ${rankText(m.allegiance?.rank ?? 0, m.heritage, m.gender)} · level ${count(m.level)}`,
+                  ` · ${rankOf(m, m.allegiance?.rank ?? 0)} · level ${count(m.level)}`,
                 ),
               ),
             ),
@@ -313,8 +330,58 @@ function allegianceView(c: DirectoryCharacter, members: AllegiancePage | null): 
   );
 }
 
+/** A listed character's opening panel: who it is, where, and the tell that reaches it. */
+function leadView(c: DirectoryCharacter): View {
+  return v(
+    'section',
+    { class: 'panel lead', 'aria-labelledby': 'h-character' },
+    v('h1', { id: 'h-character' }, c.address, c.title ? v('span', {}, c.title) : null),
+    v(
+      'p',
+      { class: 'meta' },
+      `${standingText(c)} · on `,
+      v('a', { href: worldHref(c.world.slug) }, worldName(c)),
+    ),
+    v('p', { class: 'meta' }, `Profile changed ${changedText(c.updated)}`),
+    v(
+      'div',
+      { class: 'tell' },
+      v('p', {}, 'Send a tell from any world on the Dereth Network:'),
+      copyable(tellLine(c.address), `A tell to ${c.address}`),
+    ),
+  );
+}
+
+/** An Auberean character's profile: who it is, its allegiance, and its health and vigor at their
+ * most. Auberean's attributes and skills aren't shown yet. */
+function aubereanView(c: DirectoryCharacter, members: AllegiancePage | null): View {
+  // Auberean's vitals are its own two, not Dereth's three.
+  const most = c.vitals as AubereanVitals | undefined;
+  const vitals = (
+    [
+      ['Health', most?.health?.base],
+      ['Vigor', most?.vigor?.base],
+    ] as const
+  ).flatMap(([name, at]) => (at === undefined ? [] : [[name, count(at)]]));
+  return v(
+    'div',
+    { class: 'profile' },
+    leadView(c),
+    allegianceView(c, members),
+    vitals.length
+      ? v(
+          'section',
+          { class: 'panel', 'aria-labelledby': 'h-stats' },
+          v('h2', { id: 'h-stats' }, 'Character'),
+          v('div', { class: 'sheet' }, table('Vitals', ['Vital', 'Maximum'], vitals)),
+        )
+      : null,
+  );
+}
+
 /** A listed character's whole profile, as its world last sent it. */
 export function characterView(c: DirectoryCharacter, members: AllegiancePage | null): View {
+  if (gameOf(c) === 'auberean') return aubereanView(c, members);
   const attributes = c.attributes;
   const vitals = c.vitals;
   const skills = sortedSkills(c.skills ?? []);
@@ -344,24 +411,7 @@ export function characterView(c: DirectoryCharacter, members: AllegiancePage | n
   return v(
     'div',
     { class: 'profile' },
-    v(
-      'section',
-      { class: 'panel lead', 'aria-labelledby': 'h-character' },
-      v('h1', { id: 'h-character' }, c.address, c.title ? v('span', {}, c.title) : null),
-      v(
-        'p',
-        { class: 'meta' },
-        `Level ${count(c.level)} ${heritageName(c.heritage)}, ${genderName(c.gender)} · on `,
-        v('a', { href: worldHref(c.world.slug) }, worldName(c)),
-      ),
-      v('p', { class: 'meta' }, `Profile changed ${changedText(c.updated)}`),
-      v(
-        'div',
-        { class: 'tell' },
-        v('p', {}, 'Send a tell from any world on the Dereth Network:'),
-        copyable(tellLine(c.address), `A tell to ${c.address}`),
-      ),
-    ),
+    leadView(c),
     allegianceView(c, members),
     attributes || vitals || figures.length || progress.length || seen.length
       ? v(

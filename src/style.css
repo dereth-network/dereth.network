@@ -44,6 +44,54 @@
   --dither: repeating-conic-gradient(rgba(255, 240, 210, 0.022) 0% 25%, transparent 0% 50%) 0 0 /
     calc(var(--px) * 2) calc(var(--px) * 2);
   color-scheme: dark;
+
+  /* The realm's accent, from its emblem: teal for Dereth, violet for Auberean. The golds are both
+     realms'. It eases from one to the other over `--swap`, nothing for someone who asks for less
+     motion. */
+  --realm: #17a9bf;
+  --realm-bright: #74eef2;
+  --realm-dark: #01506f;
+  --swap: 520ms;
+  transition:
+    --realm var(--swap) ease,
+    --realm-bright var(--swap) ease,
+    --realm-dark var(--swap) ease;
+}
+/* Registered, so the accent can ease between the realms rather than jump. */
+@property --realm {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #17a9bf;
+}
+@property --realm-bright {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #74eef2;
+}
+@property --realm-dark {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #01506f;
+}
+:root[data-realm='auberean'] {
+  --realm: #8a35d0;
+  --realm-bright: #c77df5;
+  --realm-dark: #3d1186;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --swap: 0s;
+  }
+}
+/* A page that opens in another realm takes it at once. */
+:root.still,
+:root.still * {
+  transition: none !important;
+}
+/* What only one realm says or shows. */
+:root:not([data-realm='auberean']) [data-realm-only='auberean'],
+:root[data-realm='auberean'] [data-realm-only='dereth'] {
+  display: none !important;
 }
 * {
   box-sizing: border-box;
@@ -68,24 +116,42 @@ a {
   outline-offset: var(--px);
 }
 
-/* The painting, held still while the page scrolls over it. */
+/* The painting, held still while the page scrolls over it: one for each realm, the realm's shown.
+   Changing realm opens the new one out over the old (src/realm.ts), both shown while it does. */
 .vista {
   position: fixed;
   inset: 0;
   z-index: 0;
 }
 .vista img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   image-rendering: pixelated;
   display: block;
 }
+:root:not([data-realm='auberean']) .vista:not(.turning) img[data-realm-of='auberean'],
+:root[data-realm='auberean'] .vista:not(.turning) img[data-realm-of='dereth'] {
+  display: none;
+}
+.vista img.coming {
+  z-index: 1;
+}
 .vista::after {
   content: '';
   position: absolute;
   inset: 0;
+  z-index: 2;
+  /* The realm's glow behind the lockup and portals, then the washes that let text sit on a
+     painted sky. */
   background:
+    radial-gradient(
+      ellipse 520px 300px at 18% 0,
+      color-mix(in srgb, var(--realm-dark) 42%, transparent),
+      transparent
+    ),
     linear-gradient(to bottom, rgba(12, 10, 16, 0.6), rgba(12, 10, 16, 0) 30%),
     linear-gradient(
       to top,
@@ -124,7 +190,109 @@ a {
   width: 60px;
   height: 60px;
   flex: none;
-  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.6));
+  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.6))
+    drop-shadow(0 0 9px color-mix(in srgb, var(--realm) 30%, transparent));
+}
+/* The lockup with the portals beside it, or under it where the page is too narrow for both. */
+.brand {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 26px;
+}
+
+/* A portal for each game, as the launcher has them: painted, in a gold ring. The one picked glows
+   in its own colour and its vortex turns under the ring, drawing inward; the other waits, dimmed
+   and still. */
+.realm {
+  display: flex;
+  gap: 14px;
+}
+.realm .pick {
+  flex: none;
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: 600 11px/1.15 var(--display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color var(--swap);
+}
+.realm .pick small {
+  font: 500 10px/1.15 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: none;
+  white-space: nowrap;
+  color: var(--faint);
+}
+.realm .pick:hover {
+  color: var(--gold-bright);
+}
+/* Each realm's own colour, for its portal's glow: steady, where the page's accent is still easing
+   over, so the glow comes in with the portal rather than chasing the accent. */
+.realm .pick[data-realm-pick='dereth'] {
+  --own: #17a9bf;
+}
+.realm .pick[data-realm-pick='auberean'] {
+  --own: #8a35d0;
+}
+/* Each look of a portal names the same filters, so one eases into another. */
+.realm .portal {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 3px;
+  filter: saturate(0.3) brightness(0.55) drop-shadow(0 0 0 transparent);
+  transform: scale(0.82);
+  transition:
+    filter var(--swap),
+    transform var(--swap) cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.realm .portal img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.realm .vortex {
+  animation: turn 14s linear infinite paused;
+}
+@keyframes turn {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+.realm .pick:hover .portal {
+  filter: saturate(0.6) brightness(0.8) drop-shadow(0 0 0 transparent);
+}
+/* The portal picked, by the realm itself, so it is right before the script has run. */
+:root:not([data-realm='auberean']) .realm .pick[data-realm-pick='dereth'],
+:root[data-realm='auberean'] .realm .pick[data-realm-pick='auberean'] {
+  color: #fff;
+  cursor: default;
+}
+:root:not([data-realm='auberean']) .realm .pick[data-realm-pick='dereth'] small,
+:root[data-realm='auberean'] .realm .pick[data-realm-pick='auberean'] small {
+  color: var(--muted);
+}
+:root:not([data-realm='auberean']) .realm .pick[data-realm-pick='dereth'] .portal,
+:root[data-realm='auberean'] .realm .pick[data-realm-pick='auberean'] .portal {
+  filter: saturate(1) brightness(1) drop-shadow(0 0 8px var(--own));
+  transform: none;
+}
+:root:not([data-realm='auberean']) .realm .pick[data-realm-pick='dereth'] .vortex,
+:root[data-realm='auberean'] .realm .pick[data-realm-pick='auberean'] .vortex {
+  animation-play-state: running;
+}
+@media (prefers-reduced-motion: reduce) {
+  .realm .vortex {
+    animation: none;
+  }
 }
 .lockup .word {
   font: 600 25px/0.98 var(--display);
@@ -176,10 +344,17 @@ a {
   padding: 26px 28px;
   min-width: 0;
 }
+/* A panel lit in the realm's colour. */
+.panel.lit {
+  border-color: color-mix(in srgb, var(--realm-bright) 55%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--realm) 35%, transparent),
+    0 0 22px color-mix(in srgb, var(--realm) 22%, transparent);
+}
 .panel h2 {
   margin: 0 0 14px;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid color-mix(in srgb, var(--realm) 40%, transparent);
   /* Smaller on a narrow phone, where a long word would not fit the panel. */
   font: 600 clamp(18px, 5.5vw, 22px) var(--display);
   letter-spacing: 0.1em;
@@ -366,7 +541,7 @@ a {
   gap: 8px;
 }
 .bullets li::marker {
-  color: var(--gold);
+  color: var(--realm-bright);
 }
 .bullets b {
   color: var(--text);
@@ -534,4 +709,77 @@ code {
 }
 .slider[data-ratio='wide'] {
   aspect-ratio: 1924 / 1127;
+}
+
+/* Screenshots one at a time, sliding across: the track scrolls and snaps to each, the buttons and
+   dots (src/main.ts) step through them. */
+.carousel {
+  display: grid;
+  gap: 12px;
+}
+.carousel .track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  border-radius: 6px;
+}
+.carousel .track::-webkit-scrollbar {
+  display: none;
+}
+.carousel .slide {
+  margin: 0;
+  scroll-snap-align: start;
+  min-width: 0;
+}
+/* Each screenshot whole, in one frame the shape of the wide shots (a narrower one gets bars at its
+   sides), so the carousel keeps its height from slide to slide. */
+.carousel .slide img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2145 / 1254;
+  height: auto;
+  object-fit: contain;
+  background: var(--well);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+}
+.carousel .controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.carousel .controls .btn {
+  min-width: 48px;
+  padding: 0 12px;
+  font-size: 20px;
+  cursor: pointer;
+}
+.carousel .dots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.carousel .dots button {
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+.carousel .dots button[aria-current='true'] {
+  background: var(--realm-bright);
+  border-color: var(--realm-bright);
+}
+@media (prefers-reduced-motion: reduce) {
+  .carousel .track {
+    scroll-behavior: auto;
+  }
 }

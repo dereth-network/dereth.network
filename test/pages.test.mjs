@@ -66,7 +66,7 @@ test('every page builds and passes the release check, with the hub it was built 
   }
   const { code, out } = await check(HUB);
   assert.equal(code, 0, out);
-  assert.match(out, /11 pages/);
+  assert.match(out, /13 pages/);
 });
 
 test('the directory’s pages ask not to be indexed, and robots.txt keeps crawlers out', async () => {

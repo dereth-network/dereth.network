@@ -47,6 +47,7 @@ import {
 } from '../network/format.ts';
 import type { Stage } from '../network/format.ts';
 import { HubError } from '../network/hub.ts';
+import { currentGame } from '../realm.ts';
 import type {
   Approval,
   AuditEvent,
@@ -760,6 +761,7 @@ function openRegister() {
     box,
     registrationForm({
       world: null,
+      game: currentGame(),
       submit: 'Register',
       onCancel: () => (sections.register.hidden = true),
       onSubmit: async (registration) => {

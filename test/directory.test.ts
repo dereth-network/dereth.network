@@ -235,6 +235,9 @@ test('a search in the address bar keeps only what the hub would take', () => {
     {},
   );
   assert.deepEqual(queryFrom(new URLSearchParams('level_min=9&level_max=8')), { levelMin: 9 });
+  assert.deepEqual(queryFrom(new URLSearchParams('game=auberean')), { game: 'auberean' });
+  assert.deepEqual(queryFrom(new URLSearchParams('game=any')), {}, 'either game is no game');
+  assert.equal(paramsOf({ q: 'sir bo', game: 'auberean' }).toString(), 'q=sir+bo&game=auberean');
 });
 
 test('the game’s names and the directory’s times read as players know them', () => {
@@ -261,4 +264,39 @@ test('each of a person’s characters says where it stands in the directory', ()
   );
   assert.match(listingText('taken_down').text, /off the network: banned/i);
   assert.match(listingText('off').text, /off the network: link paused/i);
+});
+
+test('an Auberean character shows its level, race, sex, title, allegiance, and health and vigor', () => {
+  const tumerok = {
+    address: 'Kesh@arwic',
+    name: 'Kesh',
+    world: { slug: 'arwic', name: 'Arwic' },
+    game: 'auberean',
+    updated: '2026-10-12T14:00:00.000Z',
+    level: 42,
+    // As the hub publishes an Auberean listing: race and sex, no heritage or gender.
+    race: 4,
+    sex: 0x2000,
+    title: 'the Unbroken',
+    allegiance: { key: 'q8Rr1', name: 'Blade of Arwic', rank: 3 },
+    vitals: { health: { base: 1250 }, vigor: { base: 640 } } as DirectoryCharacter['vitals'],
+    // A Dereth profile's fields, which an Auberean profile never shows.
+    skills: [{ id: 6, training: 'trained', base: 300 }],
+    luminance: { available: 1, maximum: 2 },
+  } as unknown as DirectoryCharacter;
+  const text = textOf(characterView(tumerok, null));
+  assert.match(text, /Level 42 Tumerok, female · on\s+Arwic/);
+  assert.match(text, /the Unbroken/);
+  assert.match(text, /Blade of Arwic/);
+  assert.match(text, /Rank 3/);
+  assert.match(text, /Health\s*1,250/);
+  assert.match(text, /Vigor\s*640/);
+  assert.doesNotMatch(text, /Skills|Luminance|Melee Defense/);
+  assert.match(
+    textOf(entryView({ ...tumerok, race: 16, sex: 0x1000 })),
+    /Level 42 Empyrean, male · Rank 3 of Blade of Arwic/,
+  );
+  const bare = textOf(characterView({ ...tumerok, vitals: undefined }, null));
+  assert.match(bare, /Tumerok/);
+  assert.doesNotMatch(bare, /Vitals/, 'no vitals, no table');
 });

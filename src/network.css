@@ -270,8 +270,11 @@ button.btn {
 .form-grid .wide {
   grid-column: 1 / -1;
 }
+/* A field's label, control and hint, from the top: a taller field beside it (one with a hint)
+   doesn't spread them apart, so fields side by side line up. */
 .field {
   display: grid;
+  align-content: start;
   gap: 4px;
   min-width: 0;
 }
@@ -291,6 +294,10 @@ fieldset {
 }
 fieldset legend {
   padding: 0 6px;
+}
+/* A fieldset's fields, clear of its legend. */
+fieldset > .form-grid {
+  margin-top: 6px;
 }
 .choice {
   display: flex;
@@ -390,6 +397,9 @@ input[aria-invalid='true'] {
   grid-template-columns: minmax(0, 1fr) 12rem;
   gap: 12px;
   margin: 16px 0 6px;
+}
+.toolbar.worlds-search {
+  grid-template-columns: minmax(0, 1fr) 11rem 11rem;
 }
 .toolbar .choice {
   grid-column: 1 / -1;
@@ -498,6 +508,19 @@ input[aria-invalid='true'] {
 .empty {
   padding: 14px 0;
   color: var(--muted);
+}
+/* A game's heading, where a list holds both games. */
+.group {
+  margin: 0;
+  padding: 18px 0 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--realm) 40%, transparent);
+  font: 600 13px var(--display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+}
+.group:first-child {
+  padding-top: 4px;
 }
 
 /* An operator's world. */
@@ -783,6 +806,7 @@ details[open] > summary {
 @media (max-width: 760px) {
   .form-grid,
   .toolbar,
+  .toolbar.worlds-search,
   .rows.cmds div {
     grid-template-columns: 1fr;
   }

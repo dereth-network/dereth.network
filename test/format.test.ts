@@ -235,6 +235,7 @@ test('an operator’s world stands where its ownership, proof and network put it
 
 test('the form sends the registration body as the hub takes it', () => {
   const fields = {
+    game: 'dereth' as const,
     slug: ' coldeve ',
     name: 'Coldeve ',
     description: 'A classic PvE world.',
@@ -252,6 +253,7 @@ test('the form sends the registration body as the hub takes it', () => {
     version: '1.77',
   };
   assert.deepEqual(toRegistration(fields), {
+    game: 'dereth',
     slug: 'coldeve',
     name: 'Coldeve',
     description: 'A classic PvE world.',
@@ -291,6 +293,7 @@ test('a world’s registration round-trips through the form', () => {
     emulator: { family: 'ACE', version: '1.77' },
   });
   assert.deepEqual(toRegistration(fieldsOf(listed)), {
+    game: 'dereth',
     slug: 'coldeve',
     name: 'Coldeve',
     description: 'A classic PvE world.',
@@ -303,6 +306,22 @@ test('a world’s registration round-trips through the form', () => {
     emulator: { family: 'ACE', version: '1.77' },
   });
   assert.equal(fieldsOf(null).family, 'ACE', 'a new world starts as an ACE world');
+});
+
+test('a world’s registration always says its game', () => {
+  const fresh = fieldsOf(null, 'auberean');
+  assert.equal(fresh.game, 'auberean');
+  assert.equal(fresh.family, 'Yalain', 'a new Asheron’s Call 2 world starts as a Yalain world');
+  assert.equal(toRegistration({ ...fresh, slug: 'arwic', name: 'Arwic' }).game, 'auberean');
+  const listed = world({ game: 'auberean', emulator: { family: 'Yalain' } });
+  assert.equal(fieldsOf(listed, 'dereth').game, 'auberean', 'a world keeps its own game');
+  assert.equal(toRegistration(fieldsOf(listed)).game, 'auberean');
+  assert.equal(
+    toRegistration({ ...fieldsOf(listed), game: 'dereth' }).game,
+    'dereth',
+    'turning a world back to Dereth says so, since the hub keeps a game a registration leaves out',
+  );
+  assert.equal(toRegistration(fieldsOf(world({}))).game, 'dereth');
 });
 
 test('a refused federation change says why, and a spent allowance says when', () => {

@@ -1,6 +1,7 @@
 // The hub's API, as the network pages call it from the browser. The public routes (the world
 // list, the network's worlds, the character directory) are read without the hub's cookie; the operator routes carry it
 // (`credentials: 'include'`), and the hub answers them only for the site's own origin.
+import type { Game } from '../games.ts';
 
 export type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -64,6 +65,8 @@ export interface World {
   website?: string | null;
   discord?: string | null;
   isDemo?: boolean;
+  /** The game it plays; a world that names none is Asheron's Call's (`gameOf`). */
+  game?: Game;
   endpoint?: Endpoint;
   emulator?: { family: string; version?: string };
   software?: string;
@@ -90,6 +93,8 @@ export interface NetworkWorld {
   slug: string;
   name: string;
   online: boolean;
+  /** The game it plays; a world that names none is Asheron's Call's (`gameOf`). */
+  game?: Game;
 }
 
 export interface NetworkStatus {
@@ -110,6 +115,9 @@ export interface Registration {
   website?: string;
   discord?: string;
   isDemo: boolean;
+  /** Its game. A new world that names none is Dereth's; a changed registration that names none
+   * keeps the world's game, so the form always names it. */
+  game?: Game;
   endpoint: Endpoint;
   emulator: { family: string; version?: string };
 }
@@ -153,6 +161,8 @@ export type ListingState = 'listed' | 'taken_down' | 'off';
 export interface PersonCharacter {
   address: string;
   world: { slug: string; name: string | null };
+  /** Its game; absent from a hub older than Auberean. */
+  game?: Game;
   linkedAt: string;
   listing?: ListingState;
 }
@@ -263,6 +273,8 @@ export interface DirectoryQuery {
   heritage?: number;
   /** The start of the allegiance's name, or of any word of it. */
   allegiance?: string;
+  /** Only the characters on worlds of this game. */
+  game?: Game;
   sort?: DirectorySort;
   limit?: number;
   offset?: number;
@@ -285,11 +297,18 @@ export interface DirectoryEntry {
   address: string;
   name: string;
   world: { slug: string; name: string | null };
+  /** Its game; absent from a hub older than Auberean, whose characters are all Dereth's. */
+  game?: Game;
   /** The hour its profile last changed. */
   updated: string;
   level: number;
+  /** A Dereth character's heritage and gender, as Dereth numbers them. */
   heritage: number;
   gender: number;
+  /** An Auberean character's race and sex instead, as Auberean numbers them: race 1 Human,
+   * 2 Lugian, 4 Tumerok, 16 Empyrean; sex `0x1000` male, `0x2000` female. */
+  race?: number;
+  sex?: number;
   title?: string;
   allegiance?: DirectoryAllegiance;
 }
@@ -310,6 +329,12 @@ export type AttributeName =
 
 export type VitalName = 'health' | 'stamina' | 'mana';
 
+/** An Auberean character's vitals: its health and vigor at their most. */
+export interface AubereanVitals {
+  health?: { base: number };
+  vigor?: { base: number };
+}
+
 /** A listed character's whole profile. The last six fields are there only as the character's own
  * "Allow others to see your ..." options allow. */
 export interface DirectoryCharacter extends DirectoryEntry {
@@ -317,6 +342,8 @@ export interface DirectoryCharacter extends DirectoryEntry {
   credits?: number;
   luminance?: { available: number; maximum: number };
   attributes?: Record<AttributeName, DirectoryAttribute>;
+  /** A Dereth character's health, stamina and mana; an Auberean character's are its health and
+   * vigor at their most (`AubereanVitals`). */
   vitals?: Record<VitalName, { base: number }>;
   skills?: DirectorySkill[];
   augmentations?: { id: number; times: number }[];
@@ -412,6 +439,8 @@ export interface WorldQuery {
   ruleset?: string;
   /** Only the worlds with this federation flag (`on`: the worlds on the network). */
   federation?: Federation;
+  /** Only the worlds of this game. */
+  game?: Game;
   limit?: number;
   offset?: number;
 }
@@ -472,6 +501,7 @@ export function createHub(base: string, fetchImpl: Fetch = (i, init) => fetch(i,
       if (query.q) params.set('q', query.q);
       if (query.ruleset) params.set('ruleset', query.ruleset);
       if (query.federation) params.set('federation', query.federation);
+      if (query.game) params.set('game', query.game);
       if (query.limit !== undefined) params.set('limit', String(query.limit));
       if (query.offset) params.set('offset', String(query.offset));
       const q = params.toString();
@@ -690,6 +720,7 @@ export function createHub(base: string, fetchImpl: Fetch = (i, init) => fetch(i,
       if (query.levelMax !== undefined) params.set('level_max', String(query.levelMax));
       if (query.heritage !== undefined) params.set('heritage', String(query.heritage));
       if (query.allegiance) params.set('allegiance', query.allegiance);
+      if (query.game) params.set('game', query.game);
       if (query.sort && query.sort !== 'updated') params.set('sort', query.sort);
       if (query.limit !== undefined) params.set('limit', String(query.limit));
       if (query.offset) params.set('offset', String(query.offset));
