@@ -215,6 +215,8 @@ export interface WorldMirrors {
    * or `off` for none; null while the hub holds none for the world (it has not said, or it runs an
    * older version); left out by a hub that keeps none. */
   globalRoom?: string | null;
+  /** What a player of the world's game calls each of its own rooms; left out by an older hub. */
+  roomNames?: Record<string, string>;
 }
 
 /** Where a mirror goes: a channel the bot says its lines in, by its id, or the address of a

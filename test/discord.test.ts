@@ -946,3 +946,97 @@ test('a mirror set, stopped or taken away, and the picture, read plainly in a hi
     'The picture mirrored lines show removed, by the hub’s operator',
   );
 });
+
+// ---- what a world's own game calls its rooms ------------------------------------------------------
+
+const AC2_NAMES = { general: 'General', trade: 'Trade', lfg: 'PvP', roleplay: 'PvP' };
+
+const optionsOf = (view: ReturnType<typeof globalRoomView>) =>
+  elementsOf(elementsOf(view, 'select')[0], 'option').map((o) => [o.attrs.value, textOf(o)]);
+
+test('a world’s Global room is picked by the names its own game has, each once', () => {
+  const view = globalRoomView({ ...mirrors(), globalRoom: 'general', roomNames: AC2_NAMES });
+  assert.deepEqual(optionsOf(view), [
+    ['general', 'General'],
+    ['trade', 'Trade'],
+    ['lfg', 'PvP'],
+    ['off', 'Off'],
+  ]);
+});
+
+test('the room that carries a world’s Global chat stands for its name, under either of its words', () => {
+  const view = globalRoomView({ ...mirrors(), globalRoom: 'roleplay', roomNames: AC2_NAMES });
+  assert.deepEqual(optionsOf(view), [
+    ['general', 'General'],
+    ['trade', 'Trade'],
+    ['roleplay', 'PvP'],
+    ['off', 'Off'],
+  ]);
+  const selected = elementsOf(elementsOf(view, 'select')[0], 'option').filter(
+    (o) => o.attrs.selected,
+  );
+  assert.deepEqual(selected.map(textOf), ['PvP']);
+});
+
+test('an older hub that names no rooms leaves the page’s own words', () => {
+  assert.deepEqual(optionsOf(globalRoomView({ ...mirrors(), globalRoom: 'general' })), [
+    ['general', 'General'],
+    ['trade', 'Trade'],
+    ['lfg', 'LFG'],
+    ['roleplay', 'Roleplay'],
+    ['off', 'Off'],
+  ]);
+});
+
+const rowNames = (state: WorldMirrors) =>
+  elementsOf(worldMirrorsView(world, state), 'b').map(textOf);
+
+test('a world’s mirror rows are its own game’s rooms, one row for a room with two of the hub’s words', () => {
+  const rooms = ['global', 'general', 'trade', 'lfg', 'roleplay'];
+  assert.deepEqual(rowNames({ ...mirrors(), rooms, roomNames: AC2_NAMES }), [
+    'Cross-world Global Chat',
+    'General Chat',
+    'Trade Chat',
+    'PvP Chat',
+  ]);
+});
+
+test('a mirror under either of a room’s words keeps its row, so it can be seen and stopped', () => {
+  const state = { ...mirrors(mirror('roleplay')), roomNames: AC2_NAMES };
+  const rooms = ['global', 'general', 'trade', 'lfg', 'roleplay'];
+  const view = worldMirrorsView(world, { ...state, rooms });
+  assert.deepEqual(elementsOf(view, 'b').map(textOf), [
+    'Cross-world Global Chat',
+    'General Chat',
+    'Trade Chat',
+    'PvP Chat',
+  ]);
+  assert.match(plain(view), /PvP Chat Through the bot/);
+});
+
+test('moving Global chat says the room’s name in the world’s own game', async () => {
+  const after = { ...mirrors(), globalRoom: 'lfg', roomNames: AC2_NAMES };
+  const hub = {
+    setGlobalRoom: async () => ({ globalRoom: 'lfg' }),
+    worldMirrors: async () => after,
+  };
+  const outcome = await setGlobalRoom(hub as never, 'aa', 'lfg', mirrors());
+  assert.deepEqual(outcome.said, { kind: 'ok', text: 'Cross-world Global chat is in PvP now.' });
+});
+
+test('a room with two of the hub’s words sends only the word in force', () => {
+  const rooms = ['global', 'general', 'trade', 'lfg', 'roleplay'];
+  const wordsOf = (state: WorldMirrors) =>
+    new Set(
+      controlsOf(worldMirrorsView(world, { ...state, rooms, roomNames: AC2_NAMES }))
+        .map((c) => c.attrs['data-room'])
+        .filter((r) => r === 'lfg' || r === 'roleplay'),
+    );
+  // Nothing mirrored: the first word, which a world keeps of the two.
+  assert.deepEqual(wordsOf(mirrors()), new Set(['lfg']));
+  // Mirrored: the word its mirror is under, the only one the world was told, for Mirror and Stop.
+  assert.deepEqual(wordsOf(mirrors(mirror('roleplay'))), new Set(['roleplay']));
+  assert.deepEqual(wordsOf(mirrors(mirror('lfg'))), new Set(['lfg']));
+  // Carrying Global: the row says so and offers no mirror under either word.
+  assert.deepEqual(wordsOf({ ...mirrors(), globalRoom: 'roleplay' }), new Set());
+});

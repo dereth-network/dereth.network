@@ -228,6 +228,25 @@ export function globalRoomRefusal(error: unknown): string {
   return explain(error);
 }
 
+/** A world's own room as a player of its game calls it: the hub says, and an older hub doesn't. */
+function ownRoomName(state: WorldMirrors, room: string): string {
+  return state.roomNames?.[room] ?? roomName(room);
+}
+
+/** Of `rooms`, one for each name their world's players know: a game can carry two of them in one
+ * room. The one to `keep` stands for its name, else the first. */
+function oneForEachName(
+  state: WorldMirrors,
+  rooms: string[],
+  keep: (room: string) => boolean,
+): string[] {
+  const name = (r: string) => ownRoomName(state, r);
+  return rooms.filter(
+    (r, i) =>
+      keep(r) || !rooms.some((o, j) => o !== r && name(o) === name(r) && (keep(o) || j < i)),
+  );
+}
+
 /** Carries a world's Global chat in `room` (or nowhere, `off`) from now on, and reads its mirrors
  * again, since a mirror of that room becomes the Global room's or goes. */
 export async function setGlobalRoom(
@@ -256,7 +275,7 @@ export async function setGlobalRoom(
   const text =
     globalRoom === 'off'
       ? 'Cross-world Global chat is off now.'
-      : `Cross-world Global chat is in ${roomName(globalRoom ?? room)} now.`;
+      : `Cross-world Global chat is in ${ownRoomName(after, globalRoom ?? room)} now.`;
   return { state: after, said: { kind: 'ok', text } };
 }
 
@@ -281,8 +300,12 @@ export function globalRoomView(state: WorldMirrors): View {
           now === null
             ? v('option', { value: '', selected: true, disabled: true }, 'Choose a room')
             : null,
-          ...GLOBAL_ROOM_CHOICES.map((r) =>
-            v('option', { value: r, selected: r === now }, r === 'off' ? 'Off' : roomName(r)),
+          ...oneForEachName(state, GLOBAL_ROOM_CHOICES, (r) => r === now).map((r) =>
+            v(
+              'option',
+              { value: r, selected: r === now },
+              r === 'off' ? 'Off' : ownRoomName(state, r),
+            ),
           ),
         ),
       ),
@@ -464,9 +487,10 @@ function form(act: string, attrs: Record<string, string>, ...children: View[]): 
   );
 }
 
-/** A room as the world's mirrors name it: cross-world Global chat, or one of the world's own. */
-function roomLabel(room: string): string {
-  return room === 'global' ? 'Cross-world Global Chat' : `${roomName(room)} Chat`;
+/** A room as the world's mirrors name it: cross-world Global chat, or one of the world's own, as
+ * `name` calls it. */
+function roomLabel(room: string, name: (room: string) => string = roomName): string {
+  return room === 'global' ? 'Cross-world Global Chat' : `${name(room)} Chat`;
 }
 
 /** One room: whether and where it's mirrored, what it carried, and the form that sets, moves or
@@ -553,8 +577,8 @@ function carryingRoom(state: WorldMirrors): string | null {
 
 /** The world's own room that carries cross-world Global chat: it can't be mirrored on its own
  * while it does. */
-function carryingRow(room: string): View {
-  const name = roomLabel(room);
+function carryingRow(state: WorldMirrors, room: string): View {
+  const name = roomLabel(room, (r) => ownRoomName(state, r));
   return v(
     'div',
     { class: 'report-item' },
@@ -576,6 +600,9 @@ function carryingRow(room: string): View {
  * mirror, and how to set a channel up. */
 export function worldMirrorsView(world: World, state: WorldMirrors): View {
   const byRoom = new Map(state.mirrors.map((m) => [m.room, m]));
+  const carrying = carryingRoom(state);
+  const label = (room: string) => roomLabel(room, (r) => ownRoomName(state, r));
+  const rooms = oneForEachName(state, worldRooms(state), (r) => r === carrying || byRoom.has(r));
   return v(
     'div',
     {},
@@ -597,10 +624,8 @@ export function worldMirrorsView(world: World, state: WorldMirrors): View {
     v(
       'div',
       {},
-      ...worldRooms(state).map((room) =>
-        room === carryingRoom(state)
-          ? carryingRow(room)
-          : mirrorRow(room, byRoom.get(room), roomLabel),
+      ...rooms.map((room) =>
+        room === carrying ? carryingRow(state, room) : mirrorRow(room, byRoom.get(room), label),
       ),
     ),
   );
@@ -614,7 +639,7 @@ function fold(key: string, title: string, ...children: View[]): View {
 /** The network's own mirror of cross-world Global chat. */
 export function networkGlobalView(state: DiscordAdmin): View {
   const global = state.mirrors.find((m) => m.world == null && m.room === 'global');
-  return mirrorRow('global', global, roomLabel);
+  return mirrorRow('global', global, (room) => roomLabel(room));
 }
 
 /** The network channels' mirrors, with the form that mirrors another channel. */
