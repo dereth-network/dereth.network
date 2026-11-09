@@ -13,6 +13,8 @@ const PAGES = {
   '/dereth/': 'Dereth · Dereth Network',
   '/auberean/': 'Auberean · Dereth Network',
   '/network/': 'Network · Dereth Network',
+  '/art/': 'Making an art pack · Dereth Network',
+  '/art/sources/': 'Art pack sources · Dereth Network',
   '/worlds/': 'Worlds · Dereth Network',
   '/operators/': 'Operators · Dereth Network',
   '/report/': 'Report a world · Dereth Network',

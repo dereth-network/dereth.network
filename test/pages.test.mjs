@@ -49,6 +49,8 @@ after(() => rm(release, { recursive: true, force: true }));
 test('every page builds and passes the release check, with the hub it was built for', async () => {
   for (const page of [
     'network',
+    'art',
+    'art/sources',
     'worlds',
     'operators',
     'report',
@@ -59,14 +61,16 @@ test('every page builds and passes the release check, with the hub it was built 
     'directory/allegiance',
   ]) {
     const html = await readFile(join(release, 'dist', page, 'index.html'), 'utf8');
-    assert.ok(html.includes(`<meta name="dereth-hub" content="${HUB}"`), `${page} names the hub`);
+    if (!page.startsWith('art'))
+      assert.ok(html.includes(`<meta name="dereth-hub" content="${HUB}"`), `${page} names the hub`);
     const nav = html.slice(html.indexOf('<nav class="rail"'), html.indexOf('</nav>'));
     assert.ok(nav.includes('<a href="/network/"'), `${page} has the network in its nav`);
+    assert.ok(!nav.includes('<a href="/art/"'), `${page} leaves the art guide out of its nav`);
     assert.ok(!nav.includes('/directory/'), `${page} leaves the directory to the network page`);
   }
   const { code, out } = await check(HUB);
   assert.equal(code, 0, out);
-  assert.match(out, /13 pages/);
+  assert.match(out, /15 pages/);
 });
 
 test('the directory’s pages ask not to be indexed, and robots.txt keeps crawlers out', async () => {
@@ -129,4 +133,20 @@ test('a page with an inline script or style fails the check', async () => {
   } finally {
     await writeFile(page, clean);
   }
+});
+
+test('the art guide’s pages carry Dereth’s docs as plain HTML, their links made the site’s', async () => {
+  const guide = await readFile(join(release, 'dist', 'art', 'index.html'), 'utf8');
+  assert.match(guide, /<title>Making an art pack · Dereth Network<\/title>/);
+  assert.match(guide, /<h1 id="making-an-art-pack">Making an art pack<\/h1>/);
+  // The wording is the docs' own and changes with them, so only the shape is held here.
+  assert.match(guide, /<h2 id="[a-z0-9-]+">/);
+  assert.match(guide, /<a href="\/art\/sources\/">/);
+  assert.doesNotMatch(guide, /art-guide|href="[^"]*\.md[#"]/);
+  const sources = await readFile(join(release, 'dist', 'art', 'sources', 'index.html'), 'utf8');
+  assert.match(sources, /<title>Art pack sources · Dereth Network<\/title>/);
+  assert.match(sources, /<a href="\/art\/#[a-z0-9-]+">/);
+  assert.doesNotMatch(sources, /art-guide|href="[^"]*\.md[#"]/);
+  const home = await readFile(join(release, 'dist', 'index.html'), 'utf8');
+  assert.ok(!home.includes('<a href="/art/">Art</a>'), 'the guide is not in the header');
 });

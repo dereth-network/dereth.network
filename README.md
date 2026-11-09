@@ -65,6 +65,11 @@ Network's pages for players and world operators.
   link page's steps are plain functions (`src/network/link.ts`), so the tests read what each
   page shows and offers; `src/network/game.ts` holds the game's names for the skill, augmentation, heritage and rank numbers a profile carries.
 
+- The art pack guide, `/art/` (making an art pack) and `/art/sources/` (publishing a source):
+  Dereth's own `docs/art/README.md` and `sources.md`, rendered to plain HTML as the pages are
+  built (`deploy/art-guide.mjs`, with `marked`), each section a panel, styled by `src/guide.css`.
+  Links between the two go to their pages, links elsewhere in Dereth's tree to it on GitHub, and
+  every heading has GitHub's anchor. See "The art pack guide" below.
 - `public/media/`: the screenshots, the launcher's painting, the icons, and the two fonts, Cinzel
   and EB Garamond, under the SIL Open Font Licence (`public/media/fonts/OFL-*.txt`). Files in
   `public/` keep their names, so they live under `/media/`, not `/assets/`, which the server
@@ -82,6 +87,26 @@ npm run deploy     # builds, checks, and deploys dist/ to Cloudflare Pages
 ```
 
 `server.mjs` serves `dist/` (Node, no dependencies), with `/healthz` for the release check.
+
+## The art pack guide
+
+The guide's text belongs to Dereth: `docs/art/` in a Dereth checkout. The site builds from its copy
+in `content/art/`, which is what `npm run build` and the deploy use. To bring in the docs' latest
+text, refresh the copy from a checkout and commit it:
+
+```text
+npm run sync-art -- C:/code/dereth
+```
+
+To work on the docs themselves, point the dev server at the checkout: it reads `docs/art/` from it
+on each visit, and reloads the page whenever one of the two files changes. Without `DERETH_TREE`
+the dev server reads `content/art/`, and reloads when that changes.
+
+```text
+DERETH_TREE=C:/code/dereth npm run dev        # http://127.0.0.1:5173/art/
+```
+
+In PowerShell: `$env:DERETH_TREE = 'C:/code/dereth'; npm run dev`.
 
 ## Cloudflare Pages
 

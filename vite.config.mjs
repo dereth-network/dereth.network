@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
+import { artGuide } from './deploy/art-guide.mjs';
 import { GAME_HOMES, gameHome, servedFrom, withOpenGraph } from './deploy/open-graph.mjs';
 import { staticHostFiles } from './server.mjs';
 
@@ -26,6 +27,8 @@ const PAGE_FOLDERS = new Set([
   '/dereth',
   '/auberean',
   '/network',
+  '/art',
+  '/art/sources',
   '/worlds',
   '/operators',
   '/report',
@@ -44,6 +47,8 @@ export default defineConfig({
       input: {
         main: page('./index.html'),
         network: page('./network/index.html'),
+        art: page('./art/index.html'),
+        'art-sources': page('./art/sources/index.html'),
         worlds: page('./worlds/index.html'),
         operators: page('./operators/index.html'),
         report: page('./report/index.html'),
@@ -67,6 +72,8 @@ export default defineConfig({
       .filter(Boolean),
   },
   plugins: [
+    // The art pack guide, rendered from Dereth's docs (deploy/art-guide.mjs).
+    artGuide(),
     {
       // In development, a page's address without its slash goes to the page. The browser keeps a
       // link's #... through the redirect, which a join link needs.

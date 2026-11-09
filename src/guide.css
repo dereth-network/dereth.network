@@ -1,0 +1,141 @@
+/*
+ * The guide pages (/art/): Markdown rendered into panels, on top of style.css and network.css.
+ * Headings, lists, code, tables and the list of a page's sections, in the site's own look.
+ */
+.prose {
+  overflow-wrap: break-word;
+}
+.prose :is(h1, h2, h3, h4) {
+  scroll-margin-top: 16px;
+}
+.prose h1 code,
+.prose h2 code {
+  font-size: 0.8em;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.prose h3,
+.prose h4 {
+  margin: 22px 0 10px;
+  font: 600 18px var(--display);
+  letter-spacing: 0.06em;
+  color: var(--gold-bright);
+}
+.prose strong {
+  color: #fff;
+  font-weight: 600;
+}
+.prose :is(ul, ol) {
+  margin: 0 0 12px;
+  padding-left: 1.4em;
+  display: grid;
+  gap: 6px;
+}
+.prose li::marker {
+  color: var(--gold);
+  font-family: var(--display);
+}
+.prose li > p {
+  margin: 0;
+}
+
+/* A block of code or of a file, as the chat blocks are set. */
+.prose pre {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  background: var(--well);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow-x: auto;
+  font:
+    15px/1.5 ui-monospace,
+    Consolas,
+    monospace;
+  color: #f4f0e6;
+}
+.prose pre code {
+  font: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+/* A table scrolls within its own box where it is wider than the panel. */
+.prose .table {
+  margin: 0 0 14px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--well);
+}
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 17px;
+  line-height: 1.4;
+}
+.prose th,
+.prose td {
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+}
+.prose tr:last-child td {
+  border-bottom: 0;
+}
+.prose th {
+  font: 600 14px var(--display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+  background: color-mix(in srgb, var(--realm) 10%, transparent);
+}
+/* The first column names a key or a field: as narrow as its longest name, each name on one line. */
+.prose td:first-child {
+  width: 1%;
+}
+.prose td:first-child code {
+  white-space: nowrap;
+}
+.prose td:nth-child(2):not(:last-child) {
+  color: var(--muted);
+  white-space: nowrap;
+}
+.prose td:last-child:not(:first-child) {
+  min-width: 16rem;
+}
+
+/* The opening panel's list of the page's sections. */
+.contents {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--realm) 40%, transparent);
+}
+.contents ol {
+  display: block;
+  margin: 0;
+  padding-left: 1.4em;
+  columns: 2 14rem;
+  column-gap: 28px;
+}
+.contents li {
+  break-inside: avoid;
+  padding: 3px 0;
+}
+.contents li::marker {
+  color: var(--gold);
+  font-family: var(--display);
+}
+
+@media (max-width: 760px) {
+  .prose pre {
+    font-size: 13px;
+  }
+  .prose table {
+    font-size: 16px;
+  }
+  .prose td:last-child:not(:first-child) {
+    min-width: 12rem;
+  }
+}
