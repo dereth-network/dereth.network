@@ -1,6 +1,6 @@
 // What the network pages say about worlds, operators' worlds and the hub's refusals, in plain
 // words. No DOM here, so all of it can be checked without a browser.
-import { EMULATORS, gameOf, rulesetFor } from '../games.ts';
+import { EMULATORS, gameOf, isGame, rulesetFor } from '../games.ts';
 import type { Game } from '../games.ts';
 import { HubError } from './hub.ts';
 import type { Approval, AuditEvent, NetworkWorld, Registration, Report, World } from './hub.ts';
@@ -408,6 +408,24 @@ export function fieldsOf(world: World | null, game: Game = 'dereth'): Registrati
     family: world?.emulator?.family ?? EMULATORS[plays][0],
     version: world?.emulator?.version ?? '',
   };
+}
+
+/** The new world's registration a link that asks to register one starts the form with
+ * (`?register&game=auberean&ruleset=KvK&name=Dawnsong&port=9000`, as the launcher opens it for a
+ * world it hosts): of the game it names (else `realm`), with the ruleset it names where the game
+ * has it (else the game's first), and its name and port where they read. `null` for an address
+ * that asks for none. */
+export function registerFields(params: URLSearchParams, realm: Game): RegistrationFields | null {
+  if (!params.has('register')) return null;
+  const named = params.get('game');
+  const game = isGame(named) ? named : realm;
+  const fields = fieldsOf(null, game);
+  fields.ruleset = rulesetFor(game, params.get('ruleset'));
+  const name = (params.get('name') ?? '').trim();
+  if (name.length >= 2 && name.length <= 80) fields.name = name;
+  const port = Number(params.get('port'));
+  if (Number.isInteger(port) && port >= 1 && port <= 65535) fields.port = String(port);
+  return fields;
 }
 
 /** The body the hub takes to register a world or replace its registration. */

@@ -12,6 +12,7 @@ import {
   isNetworkSlug,
   isRegistrySlug,
   networkState,
+  registerFields,
   readLinkCode,
   reportOutcome,
   safeLink,
@@ -322,6 +323,25 @@ test('a world’s registration always says its game', () => {
     'turning a world back to Dereth says so, since the hub keeps a game a registration leaves out',
   );
   assert.equal(toRegistration(fieldsOf(world({}))).game, 'dereth');
+});
+
+test('a link to register a world starts the form with its game, rules, name and port', () => {
+  const link = (query: string) => registerFields(new URLSearchParams(query), 'dereth');
+  assert.equal(link('game=auberean&ruleset=KvK'), null, 'a link that asks for no registration');
+  const hosted = link('register&game=auberean&ruleset=KvK&name=Dawn%20Song&port=9200');
+  assert.ok(hosted);
+  assert.equal(hosted.game, 'auberean');
+  assert.equal(hosted.ruleset, 'KvK');
+  assert.equal(hosted.name, 'Dawn Song');
+  assert.equal(hosted.port, '9200');
+  assert.equal(hosted.family, 'Yalain');
+  assert.equal(toRegistration({ ...hosted, slug: 'dawnsong' }).ruleset, 'KvK');
+  const odd = link('register&game=auberean&ruleset=PvP&name=x&port=70000');
+  assert.ok(odd);
+  assert.equal(odd.ruleset, 'Standard', 'a ruleset the game has not');
+  assert.equal(odd.name, '', 'a name too short');
+  assert.equal(odd.port, '9000', 'a port out of range');
+  assert.equal(link('register')?.game, 'dereth', 'no game: the realm’s');
 });
 
 test('an Asheron’s Call 2 world’s registration names one of its own rulesets', () => {

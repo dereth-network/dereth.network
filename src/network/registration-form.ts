@@ -14,6 +14,8 @@ export interface RegistrationFormOptions {
   world: World | null;
   /** The game a new world starts in: the realm the page is in. */
   game?: Game;
+  /** The fields a new world starts with, in place of a blank form of `game`. */
+  start?: RegistrationFields;
   submit: string;
   onSubmit: (registration: Registration) => Promise<void>;
   onCancel?: () => void;
@@ -21,7 +23,7 @@ export interface RegistrationFormOptions {
 
 export function registrationForm(options: RegistrationFormOptions): HTMLFormElement {
   const n = ++forms;
-  const start = fieldsOf(options.world, options.game);
+  const start = options.start ?? fieldsOf(options.world, options.game);
   const editing = options.world !== null;
   const text = (name: string, value: string, attrs: Record<string, string | boolean> = {}) =>
     h('input', { type: 'text', name, value, autocomplete: 'off', id: `reg${n}-${name}`, ...attrs });

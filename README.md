@@ -32,7 +32,9 @@ Network's pages for players and world operators.
     admins, review them, and keep the hub's settings: the approvals a day, the Discord account
     age and the days a world may wait to be proven (each with its default, and their history),
     the network's own mirrors, the picture mirrored lines show, every world's mirrors (take any
-    away), and the tells carried into Discord;
+    away), and the tells carried into Discord. A link with `?register` (the launcher's, for a
+    world it hosts: `&game=auberean&ruleset=KvK&name=...&port=...`) opens the register form
+    started with those, once signed in;
   - `/report/`: report a world;
   - `/link/`: the link `@dn link` gives a character in game opens here, its one-time code after
     the `#`, which no server is sent; signed in with Discord (the page signs you in first, the

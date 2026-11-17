@@ -41,11 +41,12 @@ import {
   isNetworkSlug,
   isRegistrySlug,
   needsProof,
+  registerFields,
   reportOutcome,
   stage,
   when,
 } from '../network/format.ts';
-import type { Stage } from '../network/format.ts';
+import type { RegistrationFields, Stage } from '../network/format.ts';
 import { HubError } from '../network/hub.ts';
 import { currentGame } from '../realm.ts';
 import type {
@@ -754,7 +755,8 @@ function auditRow(event: AuditEvent): HTMLElement {
 
 // Registering and claiming.
 
-function openRegister() {
+/** Opens the form to register a world: blank, or started with `start` (what a link asked for). */
+function openRegister(start?: RegistrationFields) {
   sections.claim.hidden = true;
   const box = byId('register-form');
   fill(
@@ -762,6 +764,7 @@ function openRegister() {
     registrationForm({
       world: null,
       game: currentGame(),
+      start,
       submit: 'Register',
       onCancel: () => (sections.register.hidden = true),
       onSubmit: async (registration) => {
@@ -1144,6 +1147,9 @@ function showHubRules(state: HubSettings) {
 async function main() {
   const signin = takeQuery('signin');
   const claim = new URLSearchParams(location.search).get('claim');
+  // A link that asks to register a world (the launcher's, for a world it hosts) keeps its fields
+  // through signing in, and opens the form with them.
+  const asked = registerFields(new URLSearchParams(location.search), currentGame());
   try {
     config = await hub.config();
   } catch (error) {
@@ -1183,7 +1189,7 @@ async function main() {
     }
     location.replace(location.pathname);
   });
-  byId('open-register').addEventListener('click', openRegister);
+  byId('open-register').addEventListener('click', () => openRegister());
   // Signed in, the steps' Sign in points at your worlds, and Register opens the form.
   byId<HTMLAnchorElement>('step-signin').href = '#home';
   byId<HTMLAnchorElement>('step-register').href = '#register';
@@ -1211,6 +1217,9 @@ async function main() {
   if (claim && isRegistrySlug(claim)) {
     takeQuery('claim');
     openClaim(claim);
+  } else if (asked) {
+    for (const name of ['register', 'game', 'ruleset', 'name', 'port']) takeQuery(name);
+    openRegister(asked);
   }
 }
 
