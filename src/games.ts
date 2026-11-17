@@ -19,6 +19,24 @@ export const EMULATORS: Record<Game, readonly string[]> = {
   auberean: ['Yalain'],
 };
 
+/** The rulesets a world of each game may name, as the hub spells them, in the order the pages
+ * offer them. An Asheron's Call 2 world says where its players may fight: at peace but for its
+ * conflict areas, kingdoms against each other anywhere, or anyone against anyone. */
+export const RULESETS: Record<Game, readonly string[]> = {
+  dereth: ['PvE', 'PvP', 'PvP-lite', 'Custom'],
+  auberean: ['Standard', 'KvK', 'FFA'],
+};
+
+/** The rulesets a list of `game`'s worlds (or both games', `any`) may be filtered by. */
+export function rulesetsOf(game: Game | 'any'): string[] {
+  return game === 'any' ? [...RULESETS.dereth, ...RULESETS.auberean] : [...RULESETS[game]];
+}
+
+/** `ruleset` when a world of `game` may name it, else the game's first. */
+export function rulesetFor(game: Game, ruleset: string | null | undefined): string {
+  return ruleset && RULESETS[game].includes(ruleset) ? ruleset : RULESETS[game][0];
+}
+
 export function isGame(value: unknown): value is Game {
   return value === 'dereth' || value === 'auberean';
 }

@@ -1,9 +1,9 @@
 // The form that registers a world, or changes its registration. Its fields follow the hub's
 // registration body; the hub checks them again and says what it refuses.
-import { EMULATORS, GAMES, GAME_NAMES, isGame } from '../games.ts';
+import { EMULATORS, GAMES, GAME_NAMES, RULESETS, isGame, rulesetFor } from '../games.ts';
 import type { Game } from '../games.ts';
 import { busy, errorNotice, fill, h } from './dom.ts';
-import { RULESETS, fieldsOf, slugAdvice, toRegistration } from './format.ts';
+import { fieldsOf, slugAdvice, toRegistration } from './format.ts';
 import type { RegistrationFields } from './format.ts';
 import type { Registration, World } from './hub.ts';
 
@@ -55,11 +55,8 @@ export function registrationForm(options: RegistrationFormOptions): HTMLFormElem
   slug.addEventListener('input', showSlugAdvice);
 
   const name = text('name', start.name, { required: true, minlength: '2', maxlength: '80' });
-  const ruleset = h(
-    'select',
-    { name: 'ruleset' },
-    ...RULESETS.map((r) => h('option', { value: r, selected: r === start.ruleset }, r)),
-  );
+  // The rulesets offered are the game's (below).
+  const ruleset = h('select', { name: 'ruleset' });
   const region = text('region', start.region, { maxlength: '60', placeholder: 'US East' });
   // The community list's own maturities, offered; any other may be typed.
   const maturities = h(
@@ -129,6 +126,13 @@ export function registrationForm(options: RegistrationFormOptions): HTMLFormElem
     const plays = game();
     fill(emulators, ...EMULATORS[plays].map((e) => h('option', { value: e })));
     version.placeholder = plays === 'dereth' ? '1.77' : '0.1.0';
+    // The game's rulesets, the one chosen kept where the game has it.
+    const chosen = rulesetFor(plays, ruleset.value || start.ruleset);
+    fill(
+      ruleset,
+      ...RULESETS[plays].map((r) => h('option', { value: r, selected: r === chosen }, r)),
+    );
+    ruleset.value = chosen;
   };
   showGame();
   gameChoice.addEventListener('change', () => {

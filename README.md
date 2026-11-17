@@ -11,8 +11,8 @@ Network's pages for players and world operators.
   in an address picks one; otherwise the one kept in
   `localStorage`; otherwise Dereth); `src/realm.ts` works the portals, opens the new realm's
   painting out from the portal picked, and tells the pages; `src/games.ts` holds the two games'
-  names and emulators. The realm sets the accent (teal or violet), the painting, and whatever is
-  marked `data-realm-only`. The realm's name is the hub's `game` too; a world or character that
+  names, emulators and rulesets. The realm sets the accent (teal or violet), the painting, and
+  whatever is marked `data-realm-only`. The realm's name is the hub's `game` too; a world or character that
   names no `game` is Dereth's, as the launcher
   reads it.
 - `index.html`, `src/style.css`, and `src/main.ts` (the before-and-after sliders, and the screenshot carousel). The home page
@@ -138,7 +138,8 @@ doesn't (each row names its `game`); read an Auberean listing in its own words (
 2 Lugian, 4 Tumerok, 16 Empyrean; `sex` `0x1000` male, `0x2000` female; `vitals.health` and
 `vitals.vigor`, each `base` its maximum); read a linked character's game from its own `game`, else
 its world's in `/v1/network`, else Dereth's; and always name the game in a registration, since the
-hub keeps a world's game when a changed registration names none.
+hub keeps a world's game when a changed registration names none, with a ruleset of that game's
+(an Auberean world's `Standard`, `KvK` or `FFA`; the hub refuses another game's).
 
 To try them against another hub (one on this
 machine, say), set `DERETH_HUB_URL` for the build or the dev server, and for `npm start`, which

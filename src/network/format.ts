@@ -1,12 +1,9 @@
 // What the network pages say about worlds, operators' worlds and the hub's refusals, in plain
 // words. No DOM here, so all of it can be checked without a browser.
-import { EMULATORS, gameOf } from '../games.ts';
+import { EMULATORS, gameOf, rulesetFor } from '../games.ts';
 import type { Game } from '../games.ts';
 import { HubError } from './hub.ts';
 import type { Approval, AuditEvent, NetworkWorld, Registration, Report, World } from './hub.ts';
-
-/** The rulesets a world may have, in the order the pages offer them. */
-export const RULESETS = ['PvE', 'PvP', 'PvP-lite', 'Custom'] as const;
 
 // The names no world can join the network under: the nine retail worlds, and the network's own
 // words. A world may still be listed with one; it just cannot turn the network on.
@@ -398,7 +395,7 @@ export function fieldsOf(world: World | null, game: Game = 'dereth'): Registrati
     slug: world?.slug ?? '',
     name: world?.name ?? '',
     description: world?.description ?? '',
-    ruleset: world?.ruleset ?? 'PvE',
+    ruleset: rulesetFor(plays, world?.ruleset),
     region: world?.region && world.region !== 'Unspecified' ? world.region : '',
     maturity: world?.maturity && world.maturity !== 'Unspecified' ? world.maturity : '',
     website: world?.website ?? '',

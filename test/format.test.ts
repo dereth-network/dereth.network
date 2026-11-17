@@ -324,6 +324,16 @@ test('a world’s registration always says its game', () => {
   assert.equal(toRegistration(fieldsOf(world({}))).game, 'dereth');
 });
 
+test('an Asheron’s Call 2 world’s registration names one of its own rulesets', () => {
+  assert.equal(fieldsOf(null, 'auberean').ruleset, 'Standard', 'a new world starts standard');
+  assert.equal(fieldsOf(null).ruleset, 'PvE');
+  const kvk = world({ game: 'auberean', ruleset: 'KvK', emulator: { family: 'Yalain' } });
+  assert.equal(toRegistration(fieldsOf(kvk)).ruleset, 'KvK');
+  const older = world({ game: 'auberean', ruleset: 'PvE', emulator: { family: 'Yalain' } });
+  assert.equal(fieldsOf(older).ruleset, 'Standard', 'one registered before it had its own');
+  assert.equal(toRegistration({ ...fieldsOf(kvk), ruleset: 'FFA' }).ruleset, 'FFA');
+});
+
 test('a refused federation change says why, and a spent allowance says when', () => {
   const refusal = (status: number, code: string, reason: string, retry?: number) =>
     explain(new HubError(status, code, 'x', reason, retry));

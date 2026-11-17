@@ -1,12 +1,11 @@
 // The worlds page: the hub's public list, searched and filtered by the hub itself, a page at a
 // time, with whether each world is on the network and linked to it now. It lists the realm's game
 // unless the search (or its address) names the other, or any, which lists both, the realm's first.
-import { GAME_NAMES, gameOf, isGame, otherGame } from '../games.ts';
+import { GAME_NAMES, gameOf, isGame, otherGame, rulesetsOf } from '../games.ts';
 import type { Game } from '../games.ts';
 import { byId, errorNotice, fill, h, pageHub } from '../network/dom.ts';
 import {
   NETWORK_TEXT,
-  RULESETS,
   addressUnproven,
   connectAddress,
   networkState,
@@ -32,7 +31,6 @@ const gameChoice = byId<HTMLSelectElement>('game');
 const start = new URLSearchParams(location.search);
 q.value = start.get('q') ?? '';
 const startRuleset = start.get('ruleset') ?? '';
-if ((RULESETS as readonly string[]).includes(startRuleset)) ruleset.value = startRuleset;
 networked.checked = start.get('federation') === 'on';
 // The game listed: the address's, or else the realm's.
 const startGame = start.get('game');
@@ -43,6 +41,19 @@ let searched: Game | 'any' =
       ? startGame
       : currentGame();
 gameChoice.value = searched;
+
+// The rules the list may be filtered by: the listed game's (both games' for any), the one chosen
+// kept where they have it.
+function showRulesets(chosen: string) {
+  const offered = rulesetsOf(searched);
+  fill(
+    ruleset,
+    h('option', { value: '' }, 'Any'),
+    ...offered.map((r) => h('option', { value: r }, r)),
+  );
+  ruleset.value = offered.includes(chosen) ? chosen : '';
+}
+showRulesets(startRuleset);
 
 let linked: Map<string, NetworkWorld> | null = null;
 // The games still to list, in order, and where the first of them is up to: null once it's done.
@@ -202,12 +213,14 @@ ruleset.addEventListener('change', search);
 networked.addEventListener('change', search);
 gameChoice.addEventListener('change', () => {
   searched = isGame(gameChoice.value) ? gameChoice.value : 'any';
+  showRulesets(ruleset.value);
   search();
 });
 // Another realm lists its own game.
 onRealm(() => {
   searched = currentGame();
   gameChoice.value = searched;
+  showRulesets(ruleset.value);
   search();
 });
 byId('filters').addEventListener('submit', (event) => {
