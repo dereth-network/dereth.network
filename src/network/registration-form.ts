@@ -1,6 +1,16 @@
 // The form that registers a world, or changes its registration. Its fields follow the hub's
 // registration body; the hub checks them again and says what it refuses.
-import { EMULATORS, GAMES, GAME_NAMES, RULESETS, isGame, rulesetFor } from '../games.ts';
+import {
+  EMULATORS,
+  ERA_NAMES,
+  GAMES,
+  GAME_NAMES,
+  RULESETS,
+  erasFor,
+  isEra,
+  isGame,
+  rulesetFor,
+} from '../games.ts';
 import type { Game } from '../games.ts';
 import { busy, errorNotice, fill, h } from './dom.ts';
 import { fieldsOf, slugAdvice, toRegistration } from './format.ts';
@@ -142,6 +152,19 @@ export function registrationForm(options: RegistrationFormOptions): HTMLFormElem
     emulator.value = EMULATORS[game()][0];
     version.value = '';
   });
+  // The era it plays: the end of retail unless said; an Asheron's Call 2 world has that one alone.
+  const eraChoice = h('select', { name: 'era' });
+  const showEras = (keep: string) => {
+    const offered = erasFor(game());
+    fill(
+      eraChoice,
+      ...offered.map((e) => h('option', { value: e, selected: e === keep }, ERA_NAMES[e])),
+    );
+    if (!offered.some((e) => e === eraChoice.value)) eraChoice.value = 'eor';
+    eraChoice.disabled = offered.length === 1;
+  };
+  showEras(start.era);
+  gameChoice.addEventListener('change', () => showEras(eraChoice.value));
   const demo = h('input', { type: 'checkbox', name: 'isDemo', checked: start.isDemo });
 
   const messages = h('div', { class: 'notices' });
@@ -159,6 +182,7 @@ export function registrationForm(options: RegistrationFormOptions): HTMLFormElem
       field('Name', name, 'As players see it, up to 80 characters.'),
       field('Game', gameChoice),
       field('Rules', ruleset),
+      field('Era', eraChoice, 'The era of the game the world plays.'),
       field('Region', region),
       field('Website', website),
       field('Discord invite', discord),
@@ -193,6 +217,7 @@ export function registrationForm(options: RegistrationFormOptions): HTMLFormElem
 
   const read = (): RegistrationFields => ({
     game: game(),
+    era: isEra(eraChoice.value) ? eraChoice.value : 'eor',
     slug: slug.value,
     name: name.value,
     description: description.value,

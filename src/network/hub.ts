@@ -1,7 +1,7 @@
 // The hub's API, as the network pages call it from the browser. The public routes (the world
 // list, the network's worlds, the character directory) are read without the hub's cookie; the operator routes carry it
 // (`credentials: 'include'`), and the hub answers them only for the site's own origin.
-import type { Game } from '../games.ts';
+import type { Era, Game } from '../games.ts';
 
 export type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -67,6 +67,8 @@ export interface World {
   isDemo?: boolean;
   /** The game it plays; a world that names none is Asheron's Call's (`gameOf`). */
   game?: Game;
+  /** The era it says it plays; null or absent when it names none. */
+  era?: string | null;
   endpoint?: Endpoint;
   emulator?: { family: string; version?: string };
   software?: string;
@@ -118,6 +120,10 @@ export interface Registration {
   /** Its game. A new world that names none is Dereth's; a changed registration that names none
    * keeps the world's game, so the form always names it. */
   game?: Game;
+  /** The era it plays (`eor`, `infiltration` or `launch`). A world that names none is listed with
+   * none and played as the end of retail; a changed registration that names none keeps the
+   * world's, so the form always names it. */
+  era?: Era;
   endpoint: Endpoint;
   emulator: { family: string; version?: string };
 }

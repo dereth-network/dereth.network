@@ -3,10 +3,14 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   EMULATORS,
+  ERAS,
+  ERA_NAMES,
   GAME_NAMES,
   RULESETS,
+  erasFor,
   gameFirst,
   gameOf,
+  isEra,
   isGame,
   otherGame,
   rulesetFor,
@@ -56,4 +60,11 @@ test('one game’s come first, each game’s in the order they came', () => {
     gameFirst(worlds, 'dereth', gameOf).map((w) => w.slug),
     ['a', 'c', 'b', 'd'],
   );
+});
+
+test('a world of Asheron’s Call says one of three eras, and one of Asheron’s Call 2 the end of retail', () => {
+  assert.deepEqual(erasFor('dereth'), ['eor', 'infiltration', 'launch']);
+  assert.deepEqual(erasFor('auberean'), ['eor']);
+  for (const e of ERAS) assert.ok(isEra(e) && ERA_NAMES[e].length > 0, e);
+  for (const bad of ['', 'EOR', 'tod', null, undefined]) assert.ok(!isEra(bad), String(bad));
 });

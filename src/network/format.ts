@@ -1,7 +1,7 @@
 // What the network pages say about worlds, operators' worlds and the hub's refusals, in plain
 // words. No DOM here, so all of it can be checked without a browser.
-import { EMULATORS, gameOf, isGame, rulesetFor } from '../games.ts';
-import type { Game } from '../games.ts';
+import { EMULATORS, erasFor, gameOf, isEra, isGame, rulesetFor } from '../games.ts';
+import type { Era, Game } from '../games.ts';
 import { HubError } from './hub.ts';
 import type { Approval, AuditEvent, NetworkWorld, Registration, Report, World } from './hub.ts';
 
@@ -368,6 +368,7 @@ export function auditText(event: AuditEvent, me: string | null): string {
 /** The registration form's fields, as typed. */
 export interface RegistrationFields {
   game: Game;
+  era: Era;
   slug: string;
   name: string;
   description: string;
@@ -390,8 +391,10 @@ export interface RegistrationFields {
 export function fieldsOf(world: World | null, game: Game = 'dereth'): RegistrationFields {
   const e = world?.endpoint;
   const plays = world ? gameOf(world) : game;
+  const era = world && isEra(world.era) && erasFor(plays).includes(world.era) ? world.era : 'eor';
   return {
     game: plays,
+    era,
     slug: world?.slug ?? '',
     name: world?.name ?? '',
     description: world?.description ?? '',
@@ -451,6 +454,9 @@ export function toRegistration(f: RegistrationFields): Registration {
   };
   // Always said: the hub keeps a world's game when a changed registration names none.
   registration.game = f.game;
+  // And its era, which the hub holds to the game's: an Asheron's Call 2 world plays the end of
+  // retail alone, and a word that names no era is the end of retail too.
+  registration.era = erasFor(f.game).includes(f.era) ? f.era : 'eor';
   if (trim(f.website)) registration.website = trim(f.website);
   if (trim(f.discord)) registration.discord = trim(f.discord);
   if (trim(f.version)) registration.emulator.version = trim(f.version);

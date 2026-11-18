@@ -237,6 +237,7 @@ test('an operator’s world stands where its ownership, proof and network put it
 test('the form sends the registration body as the hub takes it', () => {
   const fields = {
     game: 'dereth' as const,
+    era: 'eor' as const,
     slug: ' coldeve ',
     name: 'Coldeve ',
     description: 'A classic PvE world.',
@@ -255,6 +256,7 @@ test('the form sends the registration body as the hub takes it', () => {
   };
   assert.deepEqual(toRegistration(fields), {
     game: 'dereth',
+    era: 'eor',
     slug: 'coldeve',
     name: 'Coldeve',
     description: 'A classic PvE world.',
@@ -295,6 +297,7 @@ test('a world’s registration round-trips through the form', () => {
   });
   assert.deepEqual(toRegistration(fieldsOf(listed)), {
     game: 'dereth',
+    era: 'eor',
     slug: 'coldeve',
     name: 'Coldeve',
     description: 'A classic PvE world.',
@@ -352,6 +355,24 @@ test('an Asheron’s Call 2 world’s registration names one of its own rulesets
   const older = world({ game: 'auberean', ruleset: 'PvE', emulator: { family: 'Yalain' } });
   assert.equal(fieldsOf(older).ruleset, 'Standard', 'one registered before it had its own');
   assert.equal(toRegistration({ ...fieldsOf(kvk), ruleset: 'FFA' }).ruleset, 'FFA');
+});
+
+test('a world’s registration always says its era, as the hub takes it', () => {
+  const fresh = fieldsOf(null);
+  assert.equal(fresh.era, 'eor', 'a new world starts at the end of retail');
+  const reg = (fields: ReturnType<typeof fieldsOf>) =>
+    toRegistration({ ...fields, slug: 'frostfell', name: 'Frostfell' }).era;
+  assert.equal(reg(fresh), 'eor', 'said, so a changed registration keeps no older era');
+  assert.equal(reg({ ...fresh, era: 'infiltration' }), 'infiltration');
+  assert.equal(reg({ ...fresh, era: 'launch' }), 'launch');
+  // The world's own, as it starts the form to change it.
+  assert.equal(fieldsOf(world({ era: 'infiltration' })).era, 'infiltration');
+  assert.equal(fieldsOf(world({ era: null })).era, 'eor', 'one that names none');
+  assert.equal(fieldsOf(world({ era: '2003' })).era, 'eor', 'one the hub would refuse');
+  // An Asheron’s Call 2 world plays the end of retail alone, whatever the fields say.
+  const ac2 = fieldsOf(null, 'auberean');
+  assert.equal(reg({ ...ac2, era: 'infiltration' }), 'eor');
+  assert.equal(fieldsOf(world({ game: 'auberean', era: 'launch' })).era, 'eor');
 });
 
 test('a refused federation change says why, and a spent allowance says when', () => {

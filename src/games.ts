@@ -37,6 +37,28 @@ export function rulesetFor(game: Game, ruleset: string | null | undefined): stri
   return ruleset && RULESETS[game].includes(ruleset) ? ruleset : RULESETS[game][0];
 }
 
+/** The era of Asheron's Call a world plays, as the hub spells it: the end of retail, Infiltration
+ * (February 2005) or Launch (1999). An Asheron's Call 2 world plays the end of retail alone. */
+export type Era = 'eor' | 'infiltration' | 'launch';
+
+export const ERAS: readonly Era[] = ['eor', 'infiltration', 'launch'];
+
+/** What the register form calls each era. */
+export const ERA_NAMES: Record<Era, string> = {
+  eor: 'End of retail',
+  infiltration: 'Infiltration (February 2005)',
+  launch: 'Launch (1999)',
+};
+
+/** The eras a world of `game` may say it plays. */
+export function erasFor(game: Game): readonly Era[] {
+  return game === 'auberean' ? ['eor'] : ERAS;
+}
+
+export function isEra(value: unknown): value is Era {
+  return value === 'eor' || value === 'infiltration' || value === 'launch';
+}
+
 export function isGame(value: unknown): value is Game {
   return value === 'dereth' || value === 'auberean';
 }
